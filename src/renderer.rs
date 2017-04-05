@@ -1,7 +1,7 @@
 use stm32f7::lcd;
 
-static DISPLAY_WIDTH: u16 = 480;
-static DISPLAY_HEIGHT: u16 = 272;
+const DISPLAY_WIDTH: u16 = 480;
+const DISPLAY_HEIGHT: u16 = 272;
 
 
 pub struct Renderer<'a> {
