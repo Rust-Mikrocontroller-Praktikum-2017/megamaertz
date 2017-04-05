@@ -9,7 +9,11 @@ extern crate r0;
 pub mod renderer;
 
 use stm32f7::{system_clock, sdram, lcd, i2c, touch, board, embedded};
+
 use renderer::Renderer;
+
+static TRUMP: &'static [u8] = include_bytes!("../pics/trump.dump"); 
+static TRUMP_SIZE: (u16, u16) = (42, 50);
 
 #[no_mangle]
 pub unsafe extern "C" fn reset() -> ! {
