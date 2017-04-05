@@ -6,10 +6,10 @@ extern crate stm32f7_discovery as stm32f7;
 // initialization routing for .data and .bss
 extern crate r0;
 
-// pub mod renderer;
+pub mod renderer;
 
 use stm32f7::{system_clock, sdram, lcd, i2c, touch, board, embedded};
-
+use renderer::Renderer;
 
 #[no_mangle]
 pub unsafe extern "C" fn reset() -> ! {
@@ -108,9 +108,11 @@ fn main(hw: board::Hardware) -> ! {
 
     // lcd controller
     let mut lcd = lcd::init(ltdc, rcc, &mut gpio);
-    // let rend = renderer::Renderer::new();
-
     lcd.clear_screen();
+
+    let mut rend = renderer::Renderer::new(&mut lcd);
+    rend.draw_colorful_square();
+
 
     //i2c
     i2c::init_pins_and_clocks(rcc, &mut gpio);
@@ -119,15 +121,6 @@ fn main(hw: board::Hardware) -> ! {
 
     let mut last_led_toggle = system_clock::ticks();
 
-    let squares = [Rectangle::new(10, 60, 30, 80, 0xff00),
-                   Rectangle::new(10, 60, 110, 160, 0xf100),
-                   Rectangle::new(10, 60, 190, 240, 0x8000)];
-
-    for sq in squares.iter() {
-        sq.draw(&mut lcd);
-    }
-
-    let mut color = squares[0].color;
     loop {
         let ticks = system_clock::ticks();
 
@@ -141,78 +134,13 @@ fn main(hw: board::Hardware) -> ! {
 
 
         for x in 0..480 {
-            lcd.print_point_color_at(x, disp_sin(x), 48000);
+            rend.render_pixel(x, disp_sin(x), 48000);
         }
 
-        draw_colorful_square(&mut lcd);
+
 
         for touch in &touch::touches(&mut i2c_3).unwrap() {
-            for sq in squares.iter() {
-                if sq.inside(touch.x, touch.y) {
-                    color = sq.color;
-                }
-            }
-
-            lcd.print_point_color_at(touch.x, touch.y, color);
-        }
-    }
-}
-
-struct Rectangle {
-    x1: u16,
-    x2: u16,
-    y1: u16,
-    y2: u16,
-    color: u16,
-}
-
-impl Rectangle {
-    fn new(x1: u16, x2: u16, y1: u16, y2: u16, color: u16) -> Self {
-        Rectangle {
-            x1: x1,
-            x2: x2,
-            y1: y1,
-            y2: y2,
-            color: color,
-        }
-    }
-
-    fn inside(&self, x: u16, y: u16) -> bool {
-        x > self.x1 && x < self.x2 && y > self.y1 && y < self.y2
-    }
-
-    fn draw(&self, lcd: &mut lcd::Lcd) {
-        for x in self.x1..self.x2 {
-            for y in self.y1..self.y2 {
-                lcd.print_point_color_at(x, y, self.color);
-            }
-
-        }
-    }
-}
-
-fn draw_colorful_square(lcd: &mut lcd::Lcd) {
-    let colors = [0xFF00, 0xAF00];
-    let start = (240, 136);
-    let border_width = 4;
-
-    for n in 0..20 {
-        let color = colors[(n as usize) % 2];
-        let radius = n * border_width;
-        for j in 0..border_width {
-            for i in 0..radius + 1 + j {
-                // top and bottom
-                lcd.print_point_color_at(start.0 - i, start.1 - radius - j, color);
-                lcd.print_point_color_at(start.0 + i, start.1 - radius - j, color);
-                lcd.print_point_color_at(start.0 - i, start.1 + radius + j, color);
-                lcd.print_point_color_at(start.0 + i, start.1 + radius + j, color);
-
-                // left and right
-                lcd.print_point_color_at(start.0 - radius - j, start.1 - i, color);
-                lcd.print_point_color_at(start.0 - radius - j, start.1 + i, color);
-                lcd.print_point_color_at(start.0 + radius + j, start.1 - i, color);
-                lcd.print_point_color_at(start.0 + radius + j, start.1 + i, color);
-            }
+            rend.render_pixel(touch.x, touch.y, 0x8000);
         }
     }
 }
