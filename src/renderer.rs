@@ -1,5 +1,9 @@
 use stm32f7::lcd;
 
+static DISPLAY_WIDTH: u16 = 480;
+static DISPLAY_HEIGHT: u16 = 272;
+
+
 pub struct Renderer<'a> {
     display: &'a mut lcd::Lcd
 }
@@ -11,8 +15,24 @@ impl<'a> Renderer<'a> {
         }
     }
 
+    fn coord_is_inside(x: u16, y: u16) -> bool {
+        x > 0 && x < DISPLAY_HEIGHT && y > 0 && y < DISPLAY_WIDTH
+    }
+
     pub fn render_pixel(&mut self, x: u16, y: u16, color: u16) {
-        self.display.print_point_color_at(x, y, color);
+        if Self::coord_is_inside(x,y) {
+            self.display.print_point_color_at(x, y, color);
+        };
+    }
+
+    pub fn cursor(&mut self, x:u16, y:u16) {
+        for i in 0..13 {
+            self.render_pixel(x + i, y, 0xFFFF);
+            self.render_pixel(x - i, y, 0xFFFF);
+            self.render_pixel(x, y + i, 0xFFFF);
+            self.render_pixel(x, y - i, 0xFFFF);
+        }
+
     }
 
     pub fn draw_colorful_square(&mut self) {
