@@ -118,18 +118,14 @@ fn main(hw: board::Hardware) -> ! {
     let mut i2c_3 = i2c::init(i2c_3);
     touch::check_family_id(&mut i2c_3).unwrap();
 
-    let mut last_led_toggle = system_clock::ticks();
+    // for testing a "rnd" img
+    let mut img = [0xFF; 400];
+    for i in img.len() / 2..img.len() {
+        img[i] = 0x80;
+    }
 
     loop {
-        let ticks = system_clock::ticks();
-
-        // every 0.5 seconds
-        if ticks - last_led_toggle >= 500 {
-            // toggle the led
-            let led_current = led.get();
-            led.set(!led_current);
-            last_led_toggle = ticks;
-        }
+        rend.draw(200, 100, 10, &img);
 
         for touch in &touch::touches(&mut i2c_3).unwrap() {
             rend.cursor(touch.x, touch.y);

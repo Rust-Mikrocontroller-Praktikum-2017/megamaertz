@@ -48,4 +48,14 @@ impl<'a> Renderer<'a> {
             self.render_pixel(x, y.wrapping_sub(i), 0x0000);
         }
     }
+
+    pub fn draw(&mut self, x: u16, y: u16, width: u16, img: &[u8]) {
+        for i in 0..(img.len() / 2) {
+            let img_idx = i * 2;
+            let dsp_y = y + (i as u16 / width);
+            let dsp_x = x + (i as u16 % width);
+            let p = ((img[img_idx] as u16) << 8) | (img[img_idx + 1] as u16);
+            self.render_pixel(dsp_x, dsp_y, p);
+        }
+    }
 }
