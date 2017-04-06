@@ -109,14 +109,15 @@ fn main(hw: board::Hardware) -> ! {
     // lcd controller
     let mut lcd = lcd::init(ltdc, rcc, &mut gpio);
     lcd.clear_screen();
-
-    let mut rend = renderer::Renderer::new(&mut lcd);
-
+    lcd.set_background_color(lcd::Color::rgb(0, 200, 0));
 
     //i2c
     i2c::init_pins_and_clocks(rcc, &mut gpio);
     let mut i2c_3 = i2c::init(i2c_3);
     touch::check_family_id(&mut i2c_3).unwrap();
+
+    //renderer
+    let mut rend = renderer::Renderer::new(&mut lcd);
 
     // for testing a "rnd" img
     let mut img = [0xFF; 400];
@@ -124,11 +125,15 @@ fn main(hw: board::Hardware) -> ! {
         img[i] = 0x80;
     }
 
+    rend.draw_bg_unicolor(50, 50, 200, 200, 0xFC00);
+
     loop {
         rend.draw(200, 100, 10, &img);
+        rend.draw_bg(195, 85, 10, &img);
 
         for touch in &touch::touches(&mut i2c_3).unwrap() {
             rend.cursor(touch.x, touch.y);
         }
+
     }
 }
