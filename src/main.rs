@@ -125,15 +125,18 @@ fn main(hw: board::Hardware) -> ! {
         img[i] = 0x80;
     }
 
-    rend.draw_bg_unicolor(50, 50, 200, 200, 0xFC00);
+    rend.draw_bg_unicolor(0, 0, 150, 272, renderer::RGBColor::from_rgb(1, 255, 0, 0));
+    rend.draw_bg_unicolor(165, 0, 150, 272, renderer::RGBColor::from_hex_with_alpha(0xFFFF0000));
+    rend.draw_bg_unicolor(330, 0, 150, 272, renderer::RGBColor::from_hex(0xFF0000));
+
 
     loop {
         rend.draw(200, 100, 10, &img);
         rend.draw_bg(195, 85, 10, &img);
 
+        rend.remove_last_cursor();
         for touch in &touch::touches(&mut i2c_3).unwrap() {
             rend.cursor(touch.x, touch.y);
         }
-
     }
 }

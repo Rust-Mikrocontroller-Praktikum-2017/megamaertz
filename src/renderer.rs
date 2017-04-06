@@ -4,7 +4,6 @@ use core::ptr;
 const DISPLAY_WIDTH: u16 = 480;
 const DISPLAY_HEIGHT: u16 = 272;
 
-
 pub struct Renderer<'a> {
     display: &'a mut lcd::Lcd,
     last_touch: (u16, u16),
@@ -52,7 +51,7 @@ impl<'a> Renderer<'a> {
         self.last_touch = (x, y);
     }
 
-    fn remove_last_cursor(&mut self) {
+    pub fn remove_last_cursor(&mut self) {
         let x = self.last_touch.0;
         let y = self.last_touch.1;
         for i in 0..13 {
@@ -97,6 +96,37 @@ impl<'a> Renderer<'a> {
                 self.render_bg(dsp_x, dsp_y, color);
             }
         }
+    }
+}
+
+pub struct RGBColor();
+
+impl RGBColor {
+    pub fn from_rgb(a: u8, r: u8, g: u8, b: u8) -> u16 {
+        let r_f = (r / 8) as u16;
+        let g_f = (g / 8) as u16;
+        let b_f = (b / 8) as u16;
+        let mut p: u16 = 0;
+        if a > 0 {
+            p = p | 0x8000;
+        }
+        p = p | (r_f << 10) | (g_f << 5) | b_f;
+        p
+    }
+
+    pub fn from_hex_with_alpha(color: u32) -> u16 {
+        let a = (color >> 24) as u8;
+        let r = (color >> 16) as u8;
+        let g = (color >> 8) as u8;
+        let b = color as u8;
+        Self::from_rgb(a, r, g, b)
+    }
+
+    pub fn from_hex(color: u32) -> u16 {
+        let r = (color >> 16) as u8;
+        let g = (color >> 8) as u8;
+        let b = color as u8;
+        Self::from_rgb(1, r, g, b)
     }
 }
 
