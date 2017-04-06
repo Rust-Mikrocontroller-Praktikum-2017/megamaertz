@@ -102,7 +102,11 @@ impl<'a> Renderer<'a> {
 pub struct RGBColor();
 
 impl RGBColor {
-    pub fn from_rgb(a: u8, r: u8, g: u8, b: u8) -> u16 {
+    pub fn from_rgb(r: u8, g: u8, b: u8) -> u16 {
+        Self::from_rgb_with_alpha(1, r, g, b)
+    }
+
+    pub fn from_rgb_with_alpha(a: u8, r: u8, g: u8, b: u8) -> u16 {
         let r_f = (r / 8) as u16;
         let g_f = (g / 8) as u16;
         let b_f = (b / 8) as u16;
@@ -119,14 +123,14 @@ impl RGBColor {
         let r = (color >> 16) as u8;
         let g = (color >> 8) as u8;
         let b = color as u8;
-        Self::from_rgb(a, r, g, b)
+        Self::from_rgb_with_alpha(a, r, g, b)
     }
 
     pub fn from_hex(color: u32) -> u16 {
         let r = (color >> 16) as u8;
         let g = (color >> 8) as u8;
         let b = color as u8;
-        Self::from_rgb(1, r, g, b)
+        Self::from_rgb(r, g, b)
     }
 }
 

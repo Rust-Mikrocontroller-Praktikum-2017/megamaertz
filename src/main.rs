@@ -120,19 +120,25 @@ fn main(hw: board::Hardware) -> ! {
     let mut rend = renderer::Renderer::new(&mut lcd);
 
     // for testing a "rnd" img
-    let mut img = [0xFF; 400];
-    for i in img.len() / 2..img.len() {
-        img[i] = 0x80;
-    }
+    let img = [0xFF; 200];
+    let img_clr = [0x00; 200];
 
-    rend.draw_bg_unicolor(0, 0, 150, 272, renderer::RGBColor::from_rgb(1, 255, 0, 0));
+    rend.draw_bg_unicolor(0, 0, 150, 272, renderer::RGBColor::from_rgb(255, 0, 0));
     rend.draw_bg_unicolor(165, 0, 150, 272, renderer::RGBColor::from_hex_with_alpha(0xFFFF0000));
     rend.draw_bg_unicolor(330, 0, 150, 272, renderer::RGBColor::from_hex(0xFF0000));
 
+    let mut x = 0;
+    let mut y = 0;
+    rend.draw(x * 10, y * 10, 10, &img);
 
     loop {
-        rend.draw(200, 100, 10, &img);
-        rend.draw_bg(195, 85, 10, &img);
+        rend.draw(x * 10 , y * 10, 10, &img_clr);
+        x = x + 1;
+        if x > 48 {
+            x = 0;
+            y = (y + 1) % 27;
+        }
+        rend.draw(x * 10, y * 10, 10, &img);
 
         rend.remove_last_cursor();
         for touch in &touch::touches(&mut i2c_3).unwrap() {
