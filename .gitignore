@@ -2,3 +2,7 @@
 target/
 **/*.rs.bk
 *.lock
+
+rls.sh
+rls.toml
+.vscode/
