@@ -15,8 +15,10 @@ pub mod seven_segment;
 
 use stm32f7::{system_clock, sdram, lcd, i2c, audio, touch, board, embedded};
 
-static TRUMP: &'static [u8] = include_bytes!("../pics/trump.dump");
-static TRUMP_SIZE: (u16, u16) = (42, 50);
+// static TRUMP: &'static [u8] = include_bytes!("../pics/trump.dump");
+// static TRUMP_SIZE: (u16, u16) = (42, 50);
+static TRUMP: &'static [u8] = include_bytes!("../pics/trump_cartoon.dump");
+static TRUMP_SIZE: (u16, u16) = (50, 50);
 
 const DISPLAY_SIZE: (u16, u16) = (480, 272);
 static BACKGROUND: &'static [u8] = include_bytes!("../pics/background.dump");

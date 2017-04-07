@@ -42,11 +42,12 @@ impl<'a> Renderer<'a> {
 
     pub fn cursor(&mut self, x: u16, y: u16) {
         self.remove_last_cursor();
+        let c = RGBColor::from_rgb(0, 0, 0);
         for i in 0..13 {
-            self.render_pixel(x.wrapping_add(i), y, 0xFFFF);
-            self.render_pixel(x.wrapping_sub(i), y, 0xFFFF);
-            self.render_pixel(x, y.wrapping_add(i), 0xFFFF);
-            self.render_pixel(x, y.wrapping_sub(i), 0xFFFF);
+            self.render_pixel(x.wrapping_add(i), y, c);
+            self.render_pixel(x.wrapping_sub(i), y, c);
+            self.render_pixel(x, y.wrapping_add(i), c);
+            self.render_pixel(x, y.wrapping_sub(i), c);
         }
         self.last_touch = (x, y);
     }
@@ -80,7 +81,7 @@ impl<'a> Renderer<'a> {
         }
     }
 
-     pub fn draw_u16_tuple(&mut self, img: &[(u16, u16, u16)]) {
+    pub fn draw_u16_tuple(&mut self, img: &[(u16, u16, u16)]) {
         for i in 0..img.len() {
             let dsp = img[i];
             self.render_pixel(dsp.0, dsp.1, dsp.2);
@@ -126,10 +127,13 @@ impl<'a> Renderer<'a> {
 
         let img_cnt = size.0 as usize * size.1 as usize;
         for i in 0..img_cnt {
-            let idx = i * 3;
+            let idx = i * 4;
             let dsp_y = y + (i / size.0 as usize) as u16;
             let dsp_x = x + (i % size.0 as usize) as u16;
-            let c = RGBColor::from_rgb(dump[idx], dump[idx + 1], dump[idx + 2]);
+            let c = RGBColor::from_rgb_with_alpha(dump[idx + 3],
+                                                  dump[idx],
+                                                  dump[idx + 1],
+                                                  dump[idx + 2]);
             self.render_pixel(dsp_x, dsp_y, c);
         }
     }
@@ -149,10 +153,13 @@ impl<'a> Renderer<'a> {
 
         let img_cnt = size.0 as usize * size.1 as usize;
         for i in 0..img_cnt {
-            let idx = i * 3;
+            let idx = i * 4;
             let dsp_y = y + (i / size.0 as usize) as u16;
             let dsp_x = x + (i % size.0 as usize) as u16;
-            let c = RGBColor::from_rgb(dump[idx], dump[idx + 1], dump[idx + 2]);
+            let c = RGBColor::from_rgb_with_alpha(dump[idx + 3],
+                                                  dump[idx],
+                                                  dump[idx + 1],
+                                                  dump[idx + 2]);
             self.render_bg(dsp_x, dsp_y, c)
         }
     }
@@ -171,10 +178,9 @@ impl RGBColor {
         let b_f = (b / 8) as u16;
         let mut p: u16 = 0;
         if a > 0 {
-            p = p | 0x8000;
+            p = 1 << 15;
         }
-        p = p | (r_f << 10) | (g_f << 5) | b_f;
-        p
+        p | (r_f << 10) | (g_f << 5) | b_f
     }
 
     pub fn from_hex_with_alpha(color: u32) -> u16 {

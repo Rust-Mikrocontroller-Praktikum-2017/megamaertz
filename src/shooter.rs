@@ -10,7 +10,7 @@ pub struct Target {
 }
 
 impl Target {
-    pub fn new(x: u16, y: u16, width: u16, height: u18) -> Self {
+    pub fn new(x: u16, y: u16, width: u16, height: u16) -> Self {
         Target {
             x: x,
             y: y,
@@ -23,3 +23,4 @@ impl Target {
         x >= self.x && x < self.x + self.width && y >= self.y && y < self.y + self.height
     }
 }
+

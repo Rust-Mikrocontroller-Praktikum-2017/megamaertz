@@ -17,8 +17,14 @@ if not (os.path.exists(PATH_STR) and os.path.isfile(PATH_STR)):
     exit(403)
 
 IMG = Image.open(PATH_STR)
+NUM_BANDS = len(IMG.getbands())
 with open(PATH_STR[:-3] + "dump", "wb") as out:
-    for c in list(IMG.getdata()):
-        out.write(chr(c[0]) + chr(c[1]) + chr(c[2]))
+    if len(IMG.getbands()) > 3:
+        for c in list(IMG.getdata()):
+            out.write(chr(c[0]) + chr(c[1]) + chr(c[2]) + chr(c[3]))
+    else:
+        for c in list(IMG.getdata()):
+            out.write(chr(c[0]) + chr(c[1]) + chr(c[2]) + chr(42))
+
 
 print "Done"
