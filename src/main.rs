@@ -1,12 +1,17 @@
+#![feature(alloc, collections)]
+
 #![no_std]
 #![no_main]
 
-extern crate stm32f7_discovery as stm32f7;
-
 // initialization routing for .data and .bss
 extern crate r0;
+extern crate stm32f7_discovery as stm32f7;
+
+extern crate collections;
+extern crate alloc;
 
 pub mod renderer;
+pub mod seven_segment;
 
 use stm32f7::{system_clock, sdram, lcd, i2c, touch, board, embedded};
 
@@ -34,6 +39,8 @@ pub unsafe extern "C" fn reset() -> ! {
     r0::init_data(data_start, data_end, data_load);
     // zeroes the .bss section
     r0::zero_bss(bss_start, bss_end);
+
+    stm32f7::heap::init();
 
     // enable floating point unit
     let scb = stm32f7::cortex_m::peripheral::scb_mut();
@@ -130,7 +137,10 @@ fn main(hw: board::Hardware) -> ! {
     let mut x = 0;
     let mut y = 0;
     rend.draw(x * 10, y * 10, 10, &img);
+    let mut ss_display = seven_segment::SSDisplay::new(100, 100);
 
+    let last_ssd_render_time = system_clock::ticks();
+    let mut counter: u16 = 0;
     loop {
         rend.draw(x * 10 , y * 10, 10, &img_clr);
         x = x + 1;
@@ -139,6 +149,17 @@ fn main(hw: board::Hardware) -> ! {
             y = (y + 1) % 27;
         }
         rend.draw(x * 10, y * 10, 10, &img);
+
+        if system_clock::ticks() - last_ssd_render_time >= 1000 {
+            let ss_pixel = ss_display.render(counter, 0xffff);
+            for p in ss_pixel.iter()  {
+                rend.render_pixel(p.0, p.1, p.2);
+            }
+            counter = (counter % core::u16::MAX) + 1;
+        }
+
+        rend.draw(200, 100, 10, &img);
+        rend.draw_bg(195, 85, 10, &img);
 
         rend.remove_last_cursor();
         for touch in &touch::touches(&mut i2c_3).unwrap() {
