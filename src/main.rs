@@ -134,7 +134,7 @@ fn main(hw: board::Hardware) -> ! {
 
     //renderer
     let mut rend = renderer::Renderer::new(&mut lcd);
-    // rend.draw_dump_bg(0, 0, DISPLAY_SIZE, &BACKGROUND);
+    rend.draw_dump_bg(0, 0, DISPLAY_SIZE, &BACKGROUND);
 
     let mut ss_display = seven_segment::SSDisplay::new(0, 0);
 
@@ -164,6 +164,6 @@ fn main(hw: board::Hardware) -> ! {
         rend.remove_last_cursor();
         for touch in &touch::touches(&mut i2c_3).unwrap() {
             rend.cursor(touch.x, touch.y);
-        } 
-    } 
+        }
+    }
 }
