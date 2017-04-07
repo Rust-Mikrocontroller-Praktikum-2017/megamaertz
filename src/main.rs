@@ -13,7 +13,7 @@ extern crate alloc;
 pub mod renderer;
 pub mod seven_segment;
 
-use stm32f7::{system_clock, sdram, lcd, i2c, touch, board, embedded};
+use stm32f7::{system_clock, sdram, lcd, i2c, audio, touch, board, embedded};
 
 static TRUMP: &'static [u8] = include_bytes!("../pics/trump.dump");
 static TRUMP_SIZE: (u16, u16) = (42, 50);
@@ -67,6 +67,7 @@ fn main(hw: board::Hardware) -> ! {
                           gpio_j,
                           gpio_k,
                           i2c_3,
+                          sai_2,
                           .. } = hw;
 
     use embedded::interfaces::gpio::{self, Gpio};
@@ -110,6 +111,7 @@ fn main(hw: board::Hardware) -> ! {
     // turn led on
     led.set(true);
 
+
     // init sdram (needed for display buffer)
     sdram::init(rcc, fmc, &mut gpio);
 
@@ -126,6 +128,12 @@ fn main(hw: board::Hardware) -> ! {
     //renderer
     let mut rend = renderer::Renderer::new(&mut lcd);
 
+    // sai and stereo microphone
+    audio::init_sai_2_pins(&mut gpio);
+    audio::init_sai_2(sai_2, rcc);
+    assert!(audio::init_wm8994(&mut i2c_3).is_ok());
+
+    
     // for testing a "rnd" img
     let img = [0xFF; 200];
     let img_clr = [0x00; 200];
@@ -141,6 +149,7 @@ fn main(hw: board::Hardware) -> ! {
 
     let last_ssd_render_time = system_clock::ticks();
     let mut counter: u16 = 0;
+    let mut x = 0;
     loop {
         rend.draw(x * 10 , y * 10, 10, &img_clr);
         x = x + 1;
@@ -158,10 +167,22 @@ fn main(hw: board::Hardware) -> ! {
             counter = (counter % core::u16::MAX) + 1;
         }
 
+        // draw image
         rend.draw(200, 100, 10, &img);
         rend.draw_bg(195, 85, 10, &img);
-
         rend.remove_last_cursor();
+       
+        // poll for new audio data
+        while !sai_2.bsr.read().freq() {} // fifo_request_flag
+        let mic_data = sai_2.bdr.read().data();
+        let mic_data = mic_data as u16 / 272;
+
+        for i in 0..mic_data {
+            rend.render_pixel(i, x, 0xFFFF);
+        }
+            x += 1;
+
+        // draw cursor where screen is touched
         for touch in &touch::touches(&mut i2c_3).unwrap() {
             rend.cursor(touch.x, touch.y);
         }
