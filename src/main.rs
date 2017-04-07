@@ -18,6 +18,9 @@ use stm32f7::{system_clock, sdram, lcd, i2c, touch, board, embedded};
 static TRUMP: &'static [u8] = include_bytes!("../pics/trump.dump");
 static TRUMP_SIZE: (u16, u16) = (42, 50);
 
+const DISPLAY_SIZE: (u16, u16) = (480, 272);
+static BACKGROUND: &'static [u8] = include_bytes!("../pics/background.dump");
+
 #[no_mangle]
 pub unsafe extern "C" fn reset() -> ! {
     extern "C" {
@@ -125,31 +128,18 @@ fn main(hw: board::Hardware) -> ! {
 
     //renderer
     let mut rend = renderer::Renderer::new(&mut lcd);
+    // rend.draw_dump_bg(0, 0, DISPLAY_SIZE, &BACKGROUND);
+
+    let mut ss_display = seven_segment::SSDisplay::new(0, 0);
 
     // for testing a "rnd" img
-    let img = [0xFF; 200];
-    let img_clr = [0x00; 200];
+    let pos = (50, 50);
+    rend.draw_dump(pos.0, pos.1, TRUMP_SIZE, &TRUMP);
 
-    rend.draw_bg_unicolor(0, 0, 150, 272, renderer::RGBColor::from_rgb(255, 0, 0));
-    rend.draw_bg_unicolor(165, 0, 150, 272, renderer::RGBColor::from_hex_with_alpha(0xFFFF0000));
-    rend.draw_bg_unicolor(330, 0, 150, 272, renderer::RGBColor::from_hex(0xFF0000));
-
-    let mut x = 0;
-    let mut y = 0;
-    rend.draw(x * 10, y * 10, 10, &img);
-    let mut ss_display = seven_segment::SSDisplay::new(0, 0);
     let mut last_ssd_render_time = system_clock::ticks();
     let mut counter: u16 = 0;
     loop {
         let tick = system_clock::ticks();
-        rend.draw(x * 10 , y * 10, 10, &img_clr);
-        x = x + 1;
-        if x > 48 {
-            x = 0;
-            y = (y + 1) % 27;
-        }
-        rend.draw(x * 10, y * 10, 10, &img);
-
         if tick - last_ssd_render_time >= 1000 {
             let ss_pixel = ss_display.render(counter, 0x00ff00);
             rend.draw_u16_tuple(ss_pixel.as_slice());
@@ -157,8 +147,8 @@ fn main(hw: board::Hardware) -> ! {
             last_ssd_render_time = tick;
         }
 
-        rend.draw(200, 100, 10, &img);
-        rend.draw_bg(195, 85, 10, &img);
+        // rend.draw(200, 100, 10, &img);
+        // rend.draw_bg(195, 85, 10, &img);
 
         rend.remove_last_cursor();
         for touch in &touch::touches(&mut i2c_3).unwrap() {

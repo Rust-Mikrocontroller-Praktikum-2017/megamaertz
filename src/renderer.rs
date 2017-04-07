@@ -27,7 +27,7 @@ impl<'a> Renderer<'a> {
         }
     }
 
-    fn render_bg(&mut self, x: u16, y: u16, color: u16) {
+    pub fn render_bg(&mut self, x: u16, y: u16, color: u16) {
         if Self::coord_is_inside(x, y) {
             let addr: u32 = 0xC000_0000;
             let pixel = (y as u32) * 480 + (x as u32);
@@ -118,6 +118,42 @@ impl<'a> Renderer<'a> {
             for dsp_x in x..x + width {
                 self.render_bg(dsp_x, dsp_y, color);
             }
+        }
+    }
+
+    pub fn draw_dump(&mut self, x: u16, y: u16, size: (u16, u16), dump: &[u8]) {
+        use renderer::RGBColor;
+
+        let img_cnt = size.0 as usize * size.1 as usize;
+        for i in 0..img_cnt {
+            let idx = i * 3;
+            let dsp_y = y + (i / size.0 as usize) as u16;
+            let dsp_x = x + (i % size.0 as usize) as u16;
+            let c = RGBColor::from_rgb(dump[idx], dump[idx + 1], dump[idx + 2]);
+            self.render_pixel(dsp_x, dsp_y, c);
+        }
+    }
+
+    pub fn clear(&mut self, x: u16, y: u16, size: (u16, u16)) {
+        let img_cnt = size.0 as usize * size.1 as usize;
+        for i in 0..img_cnt {
+            let dsp_y = y + (i / size.0 as usize) as u16;
+            let dsp_x = x + (i % size.0 as usize) as u16;
+            let c = 0x0000;
+            self.render_pixel(dsp_x, dsp_y, c);
+        }
+    }
+
+    pub fn draw_dump_bg(&mut self, x: u16, y: u16, size: (u16, u16), dump: &[u8]) {
+        use renderer::RGBColor;
+
+        let img_cnt = size.0 as usize * size.1 as usize;
+        for i in 0..img_cnt {
+            let idx = i * 3;
+            let dsp_y = y + (i / size.0 as usize) as u16;
+            let dsp_x = x + (i % size.0 as usize) as u16;
+            let c = RGBColor::from_rgb(dump[idx], dump[idx + 1], dump[idx + 2]);
+            self.render_bg(dsp_x, dsp_y, c)
         }
     }
 }
