@@ -21,7 +21,7 @@ impl<'a> Renderer<'a> {
         x < DISPLAY_WIDTH && y < DISPLAY_HEIGHT
     }
 
-    pub fn render_pixel(&mut self, x: u16, y: u16, color: u16) {
+    fn render_pixel(&mut self, x: u16, y: u16, color: u16) {
         if Self::coord_is_inside(x, y) {
             self.display.print_point_color_at(x, y, color);
         }
@@ -77,6 +77,13 @@ impl<'a> Renderer<'a> {
             let dsp_y = y + (i as u16 / width);
             let dsp_x = x + (i as u16 % width);
             self.render_pixel(dsp_x, dsp_y, img[i]);
+        }
+    }
+
+     pub fn draw_u16_tuple(&mut self, img: &[(u16, u16, u16)]) {
+        for i in 0..img.len() {
+            let dsp = img[i];
+            self.render_pixel(dsp.0, dsp.1, dsp.2);
         }
     }
 

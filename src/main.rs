@@ -137,11 +137,11 @@ fn main(hw: board::Hardware) -> ! {
     let mut x = 0;
     let mut y = 0;
     rend.draw(x * 10, y * 10, 10, &img);
-    let mut ss_display = seven_segment::SSDisplay::new(100, 100);
-
-    let last_ssd_render_time = system_clock::ticks();
+    let mut ss_display = seven_segment::SSDisplay::new(0, 0);
+    let mut last_ssd_render_time = system_clock::ticks();
     let mut counter: u16 = 0;
     loop {
+        let tick = system_clock::ticks();
         rend.draw(x * 10 , y * 10, 10, &img_clr);
         x = x + 1;
         if x > 48 {
@@ -150,12 +150,11 @@ fn main(hw: board::Hardware) -> ! {
         }
         rend.draw(x * 10, y * 10, 10, &img);
 
-        if system_clock::ticks() - last_ssd_render_time >= 1000 {
-            let ss_pixel = ss_display.render(counter, 0xffff);
-            for p in ss_pixel.iter()  {
-                rend.render_pixel(p.0, p.1, p.2);
-            }
+        if tick - last_ssd_render_time >= 1000 {
+            let ss_pixel = ss_display.render(counter, 0x00ff00);
+            rend.draw_u16_tuple(ss_pixel.as_slice());
             counter = (counter % core::u16::MAX) + 1;
+            last_ssd_render_time = tick;
         }
 
         rend.draw(200, 100, 10, &img);
