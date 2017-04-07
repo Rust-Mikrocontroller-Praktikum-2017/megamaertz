@@ -13,9 +13,11 @@ extern crate alloc;
 pub mod renderer;
 pub mod seven_segment;
 pub mod random;
+pub mod shooter;
 
 use stm32f7::{system_clock, sdram, lcd, i2c, audio, touch, board, embedded};
 use stm32f7::board::sai::Sai;
+use collections::vec::Vec;
 
 // static TRUMP: &'static [u8] = include_bytes!("../pics/trump.dump");
 // static TRUMP_SIZE: (u16, u16) = (42, 50);
@@ -142,9 +144,9 @@ fn main(hw: board::Hardware) -> ! {
 
     let mut ss_display = seven_segment::SSDisplay::new(0, 0);
 
-    // for testing a "rnd" img
-    let pos = (50, 50);
-    rend.draw_dump(pos.0, pos.1, TRUMP_SIZE, &TRUMP);
+    // array of all targets
+    let mut targets: Vec<shooter::Target> = Vec::new();
+    let mut active_target_count = 0;
 
     let mut last_ssd_render_time = system_clock::ticks();
     let mut counter: u16 = 0;
@@ -169,9 +171,26 @@ fn main(hw: board::Hardware) -> ! {
             rend.draw_u16(100,100,25, &[0x0000 as u16; 625]);
         }
 
+        // rendering random positioned trumps
+        if active_target_count < 5 {
+            let pos : (u16, u16) = (5,5); // = rend.get_random_pos();
+            let new_target = shooter::Target::new(pos.0, pos.1, TRUMP_SIZE.0, TRUMP_SIZE.1);
+            rend.draw_dump(pos.0, pos.1, TRUMP_SIZE, &TRUMP);
+            targets.push(new_target);
+            active_target_count += 1;
+        }
+
+        // check for hit and render cursor
         rend.remove_last_cursor();
+        let mut touches : Vec<(u16, u16)> = Vec::new();
         for touch in &touch::touches(&mut i2c_3).unwrap() {
             rend.cursor(touch.x, touch.y);
+            touches.push((touch.x, touch.y));
+        }
+        let hitted_targets = shooter::Target::check_for_hit(&mut targets, &touches);
+        for hit_index in hitted_targets {
+            targets.remove(hit_index);
+            active_target_count -= 1;
         }
     }
 }
