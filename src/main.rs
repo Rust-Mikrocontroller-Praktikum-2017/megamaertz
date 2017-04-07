@@ -15,6 +15,7 @@ pub mod seven_segment;
 pub mod random;
 
 use stm32f7::{system_clock, sdram, lcd, i2c, audio, touch, board, embedded};
+use stm32f7::board::sai::Sai;
 
 // static TRUMP: &'static [u8] = include_bytes!("../pics/trump.dump");
 // static TRUMP_SIZE: (u16, u16) = (42, 50);
@@ -160,17 +161,39 @@ fn main(hw: board::Hardware) -> ! {
             last_ssd_render_time = tick;
         }
 
-        // poll for new audio data
-        while !sai_2.bsr.read().freq() {} // fifo_request_flag
-        let data0 = sai_2.bdr.read().data() as i16 as i32;
-        let mic_data = data0.abs() as u16;
-        let mut peng_display = seven_segment::SSDisplay::new(400, 250);
-        let peng_display = peng_display.render(mic_data as u16, 0xFFFF);
-        rend.draw_u16_tuple(peng_display.as_slice());
+        if vol_limit_reached(sai_2) {
+            // draw debug square
+            rend.draw_u16(100,100,25, &[0x8000 as u16; 625]);
+        } else {
+            // undraw debug square
+            rend.draw_u16(100,100,25, &[0x0000 as u16; 625]);
+        }
 
         rend.remove_last_cursor();
         for touch in &touch::touches(&mut i2c_3).unwrap() {
             rend.cursor(touch.x, touch.y);
         }
+    }
+}
+
+fn vol_limit_reached(sai_2: &'static Sai) -> bool {
+    while !sai_2.bsr.read().freq() {} // fifo_request_flag
+    let data0 = sai_2.bdr.read().data() as i16 as i32;
+    while !sai_2.bsr.read().freq() {} // fifo_request_flag
+    let data1 = sai_2.bdr.read().data() as i16 as i32;
+
+    let mic_data =
+        if data0.abs() > data1.abs() {
+            data0.abs() as u16
+        } else {
+            data1.abs() as u16
+        };
+
+    // mic_data reprents our "volume". Magic number 420 after testing.
+    let blaze_it = 420;
+    if mic_data > blaze_it {
+        true
+    } else {
+        false
     }
 }

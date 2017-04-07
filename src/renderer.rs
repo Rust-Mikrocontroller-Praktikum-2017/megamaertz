@@ -177,7 +177,7 @@ impl RGBColor {
         let g_f = (g / 8) as u16;
         let b_f = (b / 8) as u16;
         let mut p: u16 = 0;
-        if a > 0 {
+        if a >= 42 {
             p = 1 << 15;
         }
         p | (r_f << 10) | (g_f << 5) | b_f
