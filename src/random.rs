@@ -55,6 +55,10 @@ impl CMWC_State {
         self.q[self.i as usize] = m.wrapping_sub(x);
         self.q[self.i as usize]
     }
+
+    pub fn get_random_pos(&mut self, width: u16, height: u16) -> (u16, u16) {
+        (self.rand() as u16 % width, self.rand() as u16 % height)
+    }
 }
 
 // Make 32 bit random number (some systems use 16 bit RAND_MAX [Visual C 2012 uses 15 bits!])

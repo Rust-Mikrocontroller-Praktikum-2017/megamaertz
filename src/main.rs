@@ -150,6 +150,7 @@ fn main(hw: board::Hardware) -> ! {
 
     // initialize random number coordinator
     let mut rand = random::CMWC_State::new(system_clock::ticks() as u32);
+
     loop {
         let tick = system_clock::ticks();
         if tick - last_ssd_render_time >= 1000 {
