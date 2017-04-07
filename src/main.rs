@@ -138,9 +138,12 @@ fn main(hw: board::Hardware) -> ! {
     audio::init_sai_2(sai_2, rcc);
     assert!(audio::init_wm8994(&mut i2c_3).is_ok());
 
+    // initialize random number coordinator
+    let mut rand = random::CmwcState::new();
+
     //renderer
     let mut rend = renderer::Renderer::new(&mut lcd);
-    // rend.draw_dump_bg(0, 0, DISPLAY_SIZE, &BACKGROUND);
+    rend.draw_dump_bg(0, 0, DISPLAY_SIZE, &BACKGROUND);
 
     let mut ss_display = seven_segment::SSDisplay::new(0, 0);
 
@@ -151,8 +154,6 @@ fn main(hw: board::Hardware) -> ! {
     let mut last_ssd_render_time = system_clock::ticks();
     let mut counter: u16 = 0;
 
-    // initialize random number coordinator
-    let mut rand = random::CMWC_State::new(system_clock::ticks() as u32);
 
     loop {
         let tick = system_clock::ticks();
@@ -173,7 +174,7 @@ fn main(hw: board::Hardware) -> ! {
 
         // rendering random positioned trumps
         if active_target_count < 5 {
-            let pos : (u16, u16) = (5,5); // = rend.get_random_pos();
+            let pos : (u16, u16) = rand.get_random_pos(DISPLAY_SIZE.0, DISPLAY_SIZE.1);
             let new_target = shooter::Target::new(pos.0, pos.1, TRUMP_SIZE.0, TRUMP_SIZE.1);
             rend.draw_dump(pos.0, pos.1, TRUMP_SIZE, &TRUMP);
             targets.push(new_target);
@@ -187,9 +188,10 @@ fn main(hw: board::Hardware) -> ! {
             rend.cursor(touch.x, touch.y);
             touches.push((touch.x, touch.y));
         }
-        let hitted_targets = shooter::Target::check_for_hit(&mut targets, &touches);
-        for hit_index in hitted_targets {
-            targets.remove(hit_index);
+        let mut hitted_targets = shooter::Target::check_for_hit(&mut targets, &touches);
+        &hitted_targets.sort();
+        for hit_index in hitted_targets.iter().rev() {
+            targets.remove(*hit_index);
             active_target_count -= 1;
         }
     }

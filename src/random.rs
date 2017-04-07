@@ -7,16 +7,16 @@ use stm32f7::system_clock;
 const CMWC_CYCLE: usize = 512; // as Marsaglia recommends
 const CMWC_C_MAX: u32 = 809430660; // as Marsaglia recommends
 
-pub struct CMWC_State {
+pub struct CmwcState {
     q: [u32; CMWC_CYCLE],
     c: u32, // must be limited with CMWC_C_MAX
     i: u32,
 }
 
-impl CMWC_State {
+impl CmwcState {
     // Init the state with seed
-    pub fn new(seed: u32) -> Self {
-        let mut state = CMWC_State {
+    pub fn new() -> Self {
+        let mut state = CmwcState {
             q: [0; CMWC_CYCLE],
             c: 0,
             i: 0,
