@@ -13,7 +13,7 @@ extern crate alloc;
 pub mod renderer;
 pub mod seven_segment;
 
-use stm32f7::{system_clock, sdram, lcd, i2c, touch, board, embedded};
+use stm32f7::{system_clock, sdram, lcd, i2c, audio, touch, board, embedded};
 
 static TRUMP: &'static [u8] = include_bytes!("../pics/trump.dump");
 static TRUMP_SIZE: (u16, u16) = (42, 50);
@@ -70,6 +70,7 @@ fn main(hw: board::Hardware) -> ! {
                           gpio_j,
                           gpio_k,
                           i2c_3,
+                          sai_2,
                           .. } = hw;
 
     use embedded::interfaces::gpio::{self, Gpio};
@@ -126,6 +127,11 @@ fn main(hw: board::Hardware) -> ! {
     let mut i2c_3 = i2c::init(i2c_3);
     touch::check_family_id(&mut i2c_3).unwrap();
 
+    // sai and stereo microphone
+    audio::init_sai_2_pins(&mut gpio);
+    audio::init_sai_2(sai_2, rcc);
+    assert!(audio::init_wm8994(&mut i2c_3).is_ok());
+
     //renderer
     let mut rend = renderer::Renderer::new(&mut lcd);
     // rend.draw_dump_bg(0, 0, DISPLAY_SIZE, &BACKGROUND);
@@ -147,12 +153,17 @@ fn main(hw: board::Hardware) -> ! {
             last_ssd_render_time = tick;
         }
 
-        // rend.draw(200, 100, 10, &img);
-        // rend.draw_bg(195, 85, 10, &img);
+        // poll for new audio data
+        while !sai_2.bsr.read().freq() {} // fifo_request_flag
+        let data0 = sai_2.bdr.read().data() as i16 as i32;
+        let mic_data = data0.abs() as u16;
+        let mut peng_display = seven_segment::SSDisplay::new(400, 250);
+        let peng_display = peng_display.render(mic_data as u16, 0xFFFF);
+        rend.draw_u16_tuple(peng_display.as_slice());
 
         rend.remove_last_cursor();
         for touch in &touch::touches(&mut i2c_3).unwrap() {
             rend.cursor(touch.x, touch.y);
-        }
-    }
+        } 
+    } 
 }
