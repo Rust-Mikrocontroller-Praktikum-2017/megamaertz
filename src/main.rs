@@ -12,6 +12,7 @@ extern crate alloc;
 
 pub mod renderer;
 pub mod seven_segment;
+pub mod random;
 
 use stm32f7::{system_clock, sdram, lcd, i2c, audio, touch, board, embedded};
 
@@ -136,7 +137,7 @@ fn main(hw: board::Hardware) -> ! {
 
     //renderer
     let mut rend = renderer::Renderer::new(&mut lcd);
-    rend.draw_dump_bg(0, 0, DISPLAY_SIZE, &BACKGROUND);
+    // rend.draw_dump_bg(0, 0, DISPLAY_SIZE, &BACKGROUND);
 
     let mut ss_display = seven_segment::SSDisplay::new(0, 0);
 
@@ -146,12 +147,15 @@ fn main(hw: board::Hardware) -> ! {
 
     let mut last_ssd_render_time = system_clock::ticks();
     let mut counter: u16 = 0;
+
+    // initialize random number coordinator
+    let mut rand = random::CMWC_State::new(system_clock::ticks() as u32);
     loop {
         let tick = system_clock::ticks();
         if tick - last_ssd_render_time >= 1000 {
-            let ss_pixel = ss_display.render(counter, 0x00ff00);
-            rend.draw_u16_tuple(ss_pixel.as_slice());
             counter = (counter % core::u16::MAX) + 1;
+            let ss_pixel = ss_display.render(counter, 0x8000);
+            rend.draw_u16_tuple(ss_pixel.as_slice());
             last_ssd_render_time = tick;
         }
 
