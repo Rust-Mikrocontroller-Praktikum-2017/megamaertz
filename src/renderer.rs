@@ -72,6 +72,14 @@ impl<'a> Renderer<'a> {
         }
     }
 
+    pub fn draw_u16(&mut self, x: u16, y: u16, width: u16, img: &[u16]) {
+        for i in 0..img.len() {
+            let dsp_y = y + (i as u16 / width);
+            let dsp_x = x + (i as u16 % width);
+            self.render_pixel(dsp_x, dsp_y, img[i]);
+        }
+    }
+
     pub fn draw_full_bg_unicolor(&mut self, color: u16) {
         for y in 0..272 {
             for x in 0..480 {
@@ -87,6 +95,14 @@ impl<'a> Renderer<'a> {
             let dsp_x = x + (i as u16 % width);
             let p = ((img[img_idx] as u16) << 8) | (img[img_idx + 1] as u16);
             self.render_bg(dsp_x, dsp_y, p);
+        }
+    }
+
+    pub fn draw_bg_u16(&mut self, x: u16, y: u16, width: u16, img: &[u16]) {
+        for i in 0..img.len() {
+            let dsp_y = y + (i as u16 / width);
+            let dsp_x = x + (i as u16 % width);
+            self.render_bg(dsp_x, dsp_y, img[i]);
         }
     }
 
