@@ -62,16 +62,16 @@ impl SSDisplay {
         let mut offset = 0;
         for i in (0..5).rev() {
             let (print, alpha) = get_segment_indices(bcd[i]);
-            for s_num in print.iter() {
-                let ref seg = self.segs[*s_num];
-                for p in seg.pixel.iter() {
+            for s_num in print {
+                let seg = &self.segs[s_num];
+                for p in &seg.pixel {
                     result.push((p.0 + offset + self.x, p.1 + self.y, color));
                 }
             }
 
-            for a_num in alpha.iter() {
-                let ref seg = self.segs[*a_num];
-                for p in seg.pixel.iter() {
+            for a_num in alpha {
+                let seg = &self.segs[a_num];
+                for p in &seg.pixel {
                     result.push((p.0 + offset + self.x, p.1 + self.y, 0x0000));
                 }
             }
@@ -146,8 +146,7 @@ fn get_segment_indices(num: u16) -> (Vec<usize>, Vec<usize>) {
 }
 
 fn push_to_vec(vec: &mut Vec<usize>, slice: &[usize]) {
-    for i in 0..slice.len() {
-        vec.push(slice[i])
+    for i in slice {
+        vec.push(*i)
     }
 }
-

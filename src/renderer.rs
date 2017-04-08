@@ -74,17 +74,16 @@ impl<'a> Renderer<'a> {
     }
 
     pub fn draw_u16(&mut self, x: u16, y: u16, width: u16, img: &[u16]) {
-        for i in 0..img.len() {
+        for (i, px) in img.iter().enumerate() {
             let dsp_y = y + (i as u16 / width);
             let dsp_x = x + (i as u16 % width);
-            self.render_pixel(dsp_x, dsp_y, img[i]);
+            self.render_pixel(dsp_x, dsp_y, *px);
         }
     }
 
     pub fn draw_u16_tuple(&mut self, img: &[(u16, u16, u16)]) {
-        for i in 0..img.len() {
-            let dsp = img[i];
-            self.render_pixel(dsp.0, dsp.1, dsp.2);
+        for px in img.iter() {
+            self.render_pixel(px.0, px.1, px.2);
         }
     }
 
@@ -107,10 +106,10 @@ impl<'a> Renderer<'a> {
     }
 
     pub fn draw_bg_u16(&mut self, x: u16, y: u16, width: u16, img: &[u16]) {
-        for i in 0..img.len() {
+        for (i, px) in img.iter().enumerate() {
             let dsp_y = y + (i as u16 / width);
             let dsp_x = x + (i as u16 % width);
-            self.render_bg(dsp_x, dsp_y, img[i]);
+            self.render_bg(dsp_x, dsp_y, *px);
         }
     }
 
@@ -143,8 +142,7 @@ impl<'a> Renderer<'a> {
         for i in 0..img_cnt {
             let dsp_y = y + (i / size.0 as usize) as u16;
             let dsp_x = x + (i % size.0 as usize) as u16;
-            let c = 0x0000;
-            self.render_pixel(dsp_x, dsp_y, c);
+            self.set_pixel_invisible(dsp_x, dsp_y);
         }
     }
 
@@ -176,11 +174,8 @@ impl RGBColor {
         let r_f = (r / 8) as u16;
         let g_f = (g / 8) as u16;
         let b_f = (b / 8) as u16;
-        let mut p: u16 = 0;
-        if a >= 42 {
-            p = 1 << 15;
-        }
-        p | (r_f << 10) | (g_f << 5) | b_f
+        let c: u16 = if a >= 42 { 1 << 15 } else { 0 };
+        c | (r_f << 10) | (g_f << 5) | b_f
     }
 
     pub fn from_hex_with_alpha(color: u32) -> u16 {
@@ -198,4 +193,3 @@ impl RGBColor {
         Self::from_rgb(r, g, b)
     }
 }
-

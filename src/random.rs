@@ -61,6 +61,12 @@ impl CmwcState {
     }
 }
 
+impl Default for CmwcState {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 // Make 32 bit random number (some systems use 16 bit RAND_MAX [Visual C 2012 uses 15 bits!])
 fn rand_u32() -> u32 {
     let result = system_clock::ticks() as u32;

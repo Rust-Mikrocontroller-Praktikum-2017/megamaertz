@@ -4,10 +4,10 @@ use collections::vec::Vec;
 // const TARGET_HEIGHT: u16 = 50;
 
 pub struct Target {
-    x: u16,
-    y: u16,
-    width: u16,
-    height: u16,
+    pub x: u16,
+    pub y: u16,
+    pub width: u16,
+    pub height: u16,
 }
 
 impl Target {
@@ -26,15 +26,13 @@ impl Target {
 
     pub fn check_for_hit(targets: &mut [Target], touches: &[(u16, u16)]) -> Vec<usize> {
         let mut indices: Vec<usize> = Vec::new();
-        for i in 0..targets.len() {
-            for j in 0..touches.len() {
-                let (x,y) = touches[j];
-                if targets[i].coord_is_inside(x, y) {
+        for (i, target) in targets.iter_mut().enumerate() {
+            for touch in touches {
+                if target.coord_is_inside(touch.0, touch.1) {
                     indices.push(i);
-                } 
+                }
             }
         }
         indices
     }
 }
-

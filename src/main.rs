@@ -143,7 +143,7 @@ fn main(hw: board::Hardware) -> ! {
 
     //renderer
     let mut rend = renderer::Renderer::new(&mut lcd);
-    rend.draw_dump_bg(0, 0, DISPLAY_SIZE, &BACKGROUND);
+    rend.draw_dump_bg(0, 0, DISPLAY_SIZE, BACKGROUND);
 
     let mut ss_display = seven_segment::SSDisplay::new(0, 0);
 
@@ -166,32 +166,33 @@ fn main(hw: board::Hardware) -> ! {
 
         if vol_limit_reached(sai_2) {
             // draw debug square
-            rend.draw_u16(100,100,25, &[0x8000 as u16; 625]);
+            rend.draw_u16(455, 0, 25, &[0x8000 as u16; 625]);
         } else {
             // undraw debug square
-            rend.draw_u16(100,100,25, &[0x0000 as u16; 625]);
+            rend.draw_u16(455, 0, 25, &[0x0000 as u16; 625]);
         }
 
         // rendering random positioned trumps
         if active_target_count < 5 {
-            let pos : (u16, u16) = rand.get_random_pos(DISPLAY_SIZE.0, DISPLAY_SIZE.1);
+            let pos: (u16, u16) = rand.get_random_pos(DISPLAY_SIZE.0, DISPLAY_SIZE.1);
             let new_target = shooter::Target::new(pos.0, pos.1, TRUMP_SIZE.0, TRUMP_SIZE.1);
-            rend.draw_dump(pos.0, pos.1, TRUMP_SIZE, &TRUMP);
+            rend.draw_dump(pos.0, pos.1, TRUMP_SIZE, TRUMP);
             targets.push(new_target);
             active_target_count += 1;
         }
 
         // check for hit and render cursor
         rend.remove_last_cursor();
-        let mut touches : Vec<(u16, u16)> = Vec::new();
+        let mut touches: Vec<(u16, u16)> = Vec::new();
         for touch in &touch::touches(&mut i2c_3).unwrap() {
             rend.cursor(touch.x, touch.y);
             touches.push((touch.x, touch.y));
         }
-        let mut hitted_targets = shooter::Target::check_for_hit(&mut targets, &touches);
-        &hitted_targets.sort();
-        for hit_index in hitted_targets.iter().rev() {
-            targets.remove(*hit_index);
+        let mut hit_targets = shooter::Target::check_for_hit(&mut targets, &touches);
+        hit_targets.sort();
+        for hit_index in hit_targets.iter().rev() {
+            let t = targets.remove(*hit_index);
+            rend.clear(t.x, t.y, (t.width, t.height));
             active_target_count -= 1;
         }
     }
@@ -203,18 +204,13 @@ fn vol_limit_reached(sai_2: &'static Sai) -> bool {
     while !sai_2.bsr.read().freq() {} // fifo_request_flag
     let data1 = sai_2.bdr.read().data() as i16 as i32;
 
-    let mic_data =
-        if data0.abs() > data1.abs() {
-            data0.abs() as u16
-        } else {
-            data1.abs() as u16
-        };
+    let mic_data = if data0.abs() > data1.abs() {
+        data0.abs() as u16
+    } else {
+        data1.abs() as u16
+    };
 
     // mic_data reprents our "volume". Magic number 420 after testing.
     let blaze_it = 420;
-    if mic_data > blaze_it {
-        true
-    } else {
-        false
-    }
+    mic_data > blaze_it
 }
