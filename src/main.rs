@@ -183,7 +183,7 @@ fn main(hw: board::Hardware) -> ! {
             evil_target_count += 1;
         }
 
-        // // rendering random positioned hero evil_targets (mexicans)
+        // rendering random positioned hero evil_targets (mexicans)
         while hero_target_count < 3 {
             let lifetime = get_rnd_lifetime(&mut rand);
             let pos: (u16, u16) =
