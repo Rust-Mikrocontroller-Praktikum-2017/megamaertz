@@ -20,6 +20,7 @@ pub mod constants;
 use stm32f7::{system_clock, sdram, lcd, i2c, audio, touch, board, embedded};
 use stm32f7::board::sai::Sai;
 use collections::vec::Vec;
+use shooter::Target;
 
 static TRUMP: &'static [u8] = include_bytes!("../pics/trump_cartoon.dump");
 static MEXICAN: &'static [u8] = include_bytes!("../pics/mexican_cartoon.dump");
@@ -137,7 +138,7 @@ fn main(hw: board::Hardware) -> ! {
 
     //renderer
     let mut rend = renderer::Renderer::new(&mut lcd);
-    rend.draw_dump_bg(0, 0, (constants::DISPLAY_SIZE.0, constants::DISPLAY_SIZE.1), BACKGROUND);
+    // rend.draw_dump_bg(0, 0, (constants::DISPLAY_SIZE.0, constants::DISPLAY_SIZE.1), BACKGROUND);
 
     // highscore
     let mut ss_display = seven_segment::SSDisplay::new(0, 0);
@@ -165,15 +166,14 @@ fn main(hw: board::Hardware) -> ! {
         // rendering random positioned evil evil_targets (trumps)
         while evil_target_count < 5 {
             let lifetime = get_rnd_lifetime(&mut rand);
-            let pos: (u16, u16) = 
-                renderer::Renderer::get_random_pos(&mut rand, constants::TARGET_SIZE_50.0, constants::TARGET_SIZE_50.1);
-            let evil_target = shooter::Target::new(pos.0,
-                                                   pos.1,
-                                                   constants::TARGET_SIZE_50.0,
-                                                   constants::TARGET_SIZE_50.1,
-                                                   50,
-                                                   tick,
-                                                   lifetime);
+            let pos: (u16, u16) = get_rnd_pos(&mut rand, &hero_targets, &evil_targets);
+            let evil_target = Target::new(pos.0,
+                                          pos.1,
+                                          constants::TARGET_SIZE_50.0,
+                                          constants::TARGET_SIZE_50.1,
+                                          50,
+                                          tick,
+                                          lifetime);
             rend.draw_dump(pos.0, pos.1, constants::TARGET_SIZE_50, TRUMP);
             evil_targets.push(evil_target);
             evil_target_count += 1;
@@ -182,9 +182,7 @@ fn main(hw: board::Hardware) -> ! {
         // rendering random positioned hero evil_targets (mexicans)
         while hero_target_count < 3 {
             let lifetime = get_rnd_lifetime(&mut rand);
-            let pos: (u16, u16) =
-                renderer::Renderer::get_random_pos(&mut rand, constants::TARGET_SIZE_50.0, constants::TARGET_SIZE_50.1);
-
+            let pos: (u16, u16) = get_rnd_pos(&mut rand, &hero_targets, &evil_targets);
             let hero_target = shooter::Target::new(pos.0,
                                                    pos.1,
                                                    constants::TARGET_SIZE_50.0,
@@ -197,17 +195,13 @@ fn main(hw: board::Hardware) -> ! {
             hero_target_count += 1;
         }
 
-        // check for hit and render cursor
-        rend.remove_last_cursor();
         let mut touches: Vec<(u16, u16)> = Vec::new();
         for touch in &touch::touches(&mut i2c_3).unwrap() {
-            rend.cursor(touch.x, touch.y);
             touches.push((touch.x, touch.y));
         }
 
-        // check if voice detected
         if vol_limit_reached(sai_2) {
-            let mut hit_evil_targets = shooter::Target::check_for_hit(&mut evil_targets, &touches);
+            let mut hit_evil_targets = Target::check_for_hit(&mut evil_targets, &touches);
             hit_evil_targets.sort();
             for hit_index in hit_evil_targets.iter().rev() {
                 let t = evil_targets.remove(*hit_index);
@@ -215,7 +209,7 @@ fn main(hw: board::Hardware) -> ! {
                 evil_target_count -= 1;
                 highscore += t.bounty;
             }
-            let mut hit_hero_targets = shooter::Target::check_for_hit(&mut hero_targets, &touches);
+            let mut hit_hero_targets = Target::check_for_hit(&mut hero_targets, &touches);
             hit_hero_targets.sort();
             for hit_index in hit_hero_targets.iter().rev() {
                 let t = hero_targets.remove(*hit_index);
@@ -232,20 +226,16 @@ fn main(hw: board::Hardware) -> ! {
         // dont let targets live longer than lifetime secs
         for i in (0..evil_targets.len()).rev() {
             if tick - evil_targets[i].birthday > evil_targets[i].lifetime {
-                rend.clear(evil_targets[i].x,
-                           evil_targets[i].y,
-                           (evil_targets[i].width, evil_targets[i].height));
-                evil_targets.remove(i);
+                let t = evil_targets.remove(i);
+                rend.clear(t.x, t.y, (t.width, t.height));
                 evil_target_count -= 1;
             }
         }
 
         for i in (0..hero_targets.len()).rev() {
             if tick - hero_targets[i].birthday > hero_targets[i].lifetime {
-                rend.clear(hero_targets[i].x,
-                           hero_targets[i].y,
-                           (hero_targets[i].width, hero_targets[i].height));
-                hero_targets.remove(i);
+                let t = hero_targets.remove(i);
+                rend.clear(t.x, t.y, (t.width, t.height));
                 hero_target_count -= 1;
             }
         }
@@ -270,6 +260,48 @@ fn vol_limit_reached(sai_2: &'static Sai) -> bool {
 }
 
 fn get_rnd_lifetime(rnd: &mut random::Rng) -> usize {
-    let num = rnd.rand() as usize;
-    core::cmp::max(core::cmp::min(num, 5000), 10000)
+    let mut num = rnd.rand() as usize;
+    num = num & 0x3FFF;
+    core::cmp::max(num, 5000)
+}
+
+fn get_rnd_pos(rand: &mut random::Rng, existing_hero: &Vec<Target>, existing_evil: &Vec<Target>) -> (u16, u16) {
+    let mut pos = renderer::Renderer::get_random_pos(rand, constants::TARGET_SIZE_50.0, constants::TARGET_SIZE_50.1);
+    while !pos_is_okay(pos, existing_hero, existing_evil) {
+        pos = renderer::Renderer::get_random_pos(rand, constants::TARGET_SIZE_50.0, constants::TARGET_SIZE_50.1);
+    }
+    pos
+}
+
+fn are_overlapping_targets(target: &Target, pos: (u16, u16)) -> bool {
+    let corner_ur = (target.x, target.y);
+    let corner_lr = (target.x + target.width, target.y + target.height);
+
+    let x1 = pos.0;
+    let y1 = pos.1;
+    let x2 = pos.0 + constants::TARGET_SIZE_50.0;
+    let y2 = pos.1 + constants::TARGET_SIZE_50.1;
+
+    point_is_within((x1, y1), corner_ur, corner_lr) ||
+    point_is_within((x2, y2), corner_ur, corner_lr) ||
+    point_is_within((x1, y2), corner_ur, corner_lr) ||
+    point_is_within((x2, y1), corner_ur, corner_lr)
+}
+
+fn point_is_within(point: (u16, u16), corner_ul: (u16, u16), corner_lr: (u16, u16)) -> bool {
+    point.0 > corner_ul.0 && point.0 < corner_lr.0 && point.1 > corner_ul.1 && point.1 < corner_lr.1
+}
+
+fn pos_is_okay(pos: (u16, u16), existing_hero: &Vec<Target>, existing_evil: &Vec<Target>) -> bool {
+    for hero in existing_hero {
+        if are_overlapping_targets(hero, pos) {
+            return false;
+        }
+    }
+    for evil in existing_evil {
+        if are_overlapping_targets(evil, pos) {
+            return false;
+        }
+    }
+    true
 }
