@@ -1,6 +1,8 @@
 use stm32f7::lcd;
 use core::ptr;
+use core::cmp;
 use constants;
+use random;
 
 pub struct Renderer<'a> {
     display: &'a mut lcd::Lcd,
@@ -158,6 +160,13 @@ impl<'a> Renderer<'a> {
                                                   dump[idx + 2]);
             self.render_bg(dsp_x, dsp_y, c)
         }
+    }
+
+    pub fn get_random_pos(rng: &mut random::Rng, width: u16, height: u16) -> (u16, u16) {
+        (cmp::min(rng.rand() as u16 % constants::DISPLAY_SIZE.0,
+                  constants::DISPLAY_SIZE.0 - width - 1),
+         cmp::min(rng.rand() as u16 % constants::DISPLAY_SIZE.1,
+                  constants::DISPLAY_SIZE.1 - height - 1))
     }
 }
 

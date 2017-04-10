@@ -1,89 +1,109 @@
-use core::cmp;
 use core::ptr;
 use core::result::Result;
 use bit_field::BitField;
 
-use stm32f7::system_clock;
-use constants;
-
-
-// Multiply-with-carry Algorithm
-// https://en.wikipedia.org/wiki/Multiply-with-carry#Complementary-multiply-with-carry_generators
-pub struct CmwcState {
-    q: [u32; constants::CMWC_CYCLE],
-    c: u32, // must be limited with constants::CMWC_C_MAX
-    i: u32,
+pub trait Rng {
+    fn rand(&mut self) -> u32;
 }
 
-impl CmwcState {
-    // Init the state with seed
-    pub fn new() -> Self {
-        let mut state = CmwcState {
-            q: [0; constants::CMWC_CYCLE],
-            c: 0,
-            i: 0,
+// Mersenne Twister 32-bits implementation.
+//
+// See [Mersenne Twister Homepage](http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/MT2002/emt19937ar.html)
+// for more informations.
+//
+// See: https://github.com/KokaKiwi/rust-mersenne-twister/blob/master/src/mt32.rs
+const N: usize = 624;
+const M: usize = 397;
+const DIFF: isize = M as isize - N as isize;
+
+const MAGIC: [u32; 2] = [0, 0x9908b0df];
+
+const MAGIC_VALUE1: u32 = 1812433253;
+const MAGIC_VALUE2: u32 = 0x9d2c5680;
+const MAGIC_VALUE3: u32 = 0xefc60000;
+
+const UPPER_MASK: u32 = 1 << 31;
+const LOWER_MASK: u32 = !UPPER_MASK;
+
+
+pub struct MTRng32 {
+    state: [u32; N],
+    index: usize,
+}
+
+impl MTRng32 {
+    pub fn new() -> MTRng32 {
+        let mut rng = MTRng32 {
+            state: [0; N],
+            // index = N + 1 means state is not initialized.
+            index: N + 1,
         };
 
-        for i in 0..constants::CMWC_CYCLE {
-            state.q[i] = rand_u32();
-        }
-
+        // get seed from hardware random register
         let mut hwr = HwRng::init().unwrap();
         loop {
             match hwr.poll_and_get() {
                 Ok(v) => {
-                    state.c = v;
+                    rng.reset(v);
                     break;
                 }
                 Err(_) => continue,
             }
         }
 
-        state.i = (constants::CMWC_CYCLE as u32) - 1;
-
-        state
+        rng
     }
 
-    // CMWC engine
-    pub fn rand(&mut self) -> u32 {
-        let a: u32 = 18782; // as Marsaglia recommends
-        let m: u32 = 0xfffffffe; // as Marsaglia recommends
-        let t: u32;
-        let mut x: u32;
+    fn reset(&mut self, seed: u32) {
+        self.state[0] = seed;
+        for index in 1..N {
+            let prec = self.state[index - 1];
 
-        self.i = (self.i + 1) & (constants::CMWC_CYCLE as u32 - 1);
-        t = a.wrapping_mul(self.q[self.i as usize])
-            .wrapping_add(self.c);
-        self.c = t;
-        x = t.wrapping_add(self.c);
+            self.state[index] = MAGIC_VALUE1.wrapping_mul(prec ^ (prec >> 30)) + index as u32;
+        }
+        self.index = N;
+    }
 
-        if x < self.c {
-            x += 1;
-            self.c += 1;
+    fn generate_words(&mut self) {
+        for index in 0..(N - M) {
+            let y = (self.state[index] & UPPER_MASK) | (self.state[index + 1] & LOWER_MASK);
+            let magic_idx = (y & 0x1) as usize;
+            self.state[index] = self.state[index + M] ^ (y >> 1) ^ MAGIC[magic_idx];
         }
 
-        self.q[self.i as usize] = m.wrapping_sub(x);
-        self.q[self.i as usize]
-    }
+        for index in (N - M)..(N - 1) {
+            let y = (self.state[index] & UPPER_MASK) | (self.state[index + 1] & LOWER_MASK);
+            let magic_idx = (y & 0x1) as usize;
+            let nindex = index as isize + DIFF;
+            self.state[index] = self.state[nindex as usize] ^ (y >> 1) ^ MAGIC[magic_idx];
+        }
 
-    pub fn get_random_pos(&mut self, target_width: u16, target_height: u16) -> (u16, u16) {
-        (cmp::min(self.rand() as u16 % constants::DISPLAY_SIZE.0 - 1,
-                  constants::DISPLAY_SIZE.0 - target_width - 1),
-         cmp::min(self.rand() as u16 % constants::DISPLAY_SIZE.1 - 1,
-                  constants::DISPLAY_SIZE.1 - target_height - 1))
+        {
+            let y = (self.state[N - 1] & UPPER_MASK) | (self.state[0] & LOWER_MASK);
+            let magic_idx = (y & 0x1) as usize;
+            self.state[N - 1] = self.state[M - 1] ^ (y >> 1) ^ MAGIC[magic_idx];
+        }
+
+        self.index = 0;
     }
 }
 
-impl Default for CmwcState {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+impl Rng for MTRng32 {
+    fn rand(&mut self) -> u32 {
+        if self.index >= N {
+            self.generate_words();
+        }
 
-// Make 32 bit random number (some systems use 16 bit RAND_MAX [Visual C 2012 uses 15 bits!])
-fn rand_u32() -> u32 {
-    let result = system_clock::ticks() as u32;
-    result << 16 | (system_clock::ticks() as u32)
+        let mut y = self.state[self.index];
+        self.index += 1;
+
+        y ^= y >> 11;
+        y ^= (y << 7) & MAGIC_VALUE2;
+        y ^= (y << 15) & MAGIC_VALUE3;
+        y ^= y >> 18;
+
+        y
+    }
 }
 
 // Access Hardware Random Register to Seed the
@@ -149,6 +169,7 @@ impl HwRng {
                 return Ok(data);
             }
         }
+
         self.1 += 1;
         if self.1 > 80 {
             Self::disable_cr();
@@ -188,4 +209,3 @@ impl HwRng {
         };
     }
 }
-

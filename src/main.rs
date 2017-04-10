@@ -49,10 +49,6 @@ pub unsafe extern "C" fn reset() -> ! {
 
     stm32f7::heap::init();
 
-    // enable floating point unit
-    // let scb = stm32f7::cortex_m::peripheral::scb_mut();
-    // scb.cpacr.modify(|v| v | 0b1111 << 20);
-
     main(board::hw());
 }
 
@@ -136,12 +132,12 @@ fn main(hw: board::Hardware) -> ! {
     audio::init_sai_2(sai_2, rcc);
     assert!(audio::init_wm8994(&mut i2c_3).is_ok());
 
-    // initialize random number coordinator
-    let mut rand = random::CmwcState::new();
+    // initialize random number generator
+    let mut rand = random::MTRng32::new();
 
     //renderer
     let mut rend = renderer::Renderer::new(&mut lcd);
-    // rend.draw_dump_bg(0, 0, (constants::DISPLAY_SIZE.0, constants::DISPLAY_SIZE.1), BACKGROUND);
+    rend.draw_dump_bg(0, 0, (constants::DISPLAY_SIZE.0, constants::DISPLAY_SIZE.1), BACKGROUND);
 
     // highscore
     let mut ss_display = seven_segment::SSDisplay::new(0, 0);
@@ -169,8 +165,8 @@ fn main(hw: board::Hardware) -> ! {
         // rendering random positioned evil evil_targets (trumps)
         while evil_target_count < 5 {
             let lifetime = get_rnd_lifetime(&mut rand);
-            let pos: (u16, u16) =
-                rand.get_random_pos(constants::TARGET_SIZE_50.0, constants::TARGET_SIZE_50.1);
+            let pos: (u16, u16) = 
+                renderer::Renderer::get_random_pos(&mut rand, constants::TARGET_SIZE_50.0, constants::TARGET_SIZE_50.1);
             let evil_target = shooter::Target::new(pos.0,
                                                    pos.1,
                                                    constants::TARGET_SIZE_50.0,
@@ -187,7 +183,7 @@ fn main(hw: board::Hardware) -> ! {
         while hero_target_count < 3 {
             let lifetime = get_rnd_lifetime(&mut rand);
             let pos: (u16, u16) =
-                rand.get_random_pos(constants::TARGET_SIZE_50.0, constants::TARGET_SIZE_50.1);
+                renderer::Renderer::get_random_pos(&mut rand, constants::TARGET_SIZE_50.0, constants::TARGET_SIZE_50.1);
 
             let hero_target = shooter::Target::new(pos.0,
                                                    pos.1,
@@ -273,7 +269,7 @@ fn vol_limit_reached(sai_2: &'static Sai) -> bool {
     mic_data > blaze_it
 }
 
-fn get_rnd_lifetime(rnd: &mut random::CmwcState) -> usize {
+fn get_rnd_lifetime(rnd: &mut random::Rng) -> usize {
     let num = rnd.rand() as usize;
     core::cmp::max(core::cmp::min(num, 5000), 10000)
 }
