@@ -121,7 +121,7 @@ fn main(hw: board::Hardware) -> ! {
     // lcd controller
     let mut lcd = lcd::init(ltdc, rcc, &mut gpio);
     lcd.clear_screen();
-    lcd.set_background_color(lcd::Color::rgb(0, 200, 0));
+    lcd.set_background_color(lcd::Color::rgb(255,193,37));
 
     //i2c
     i2c::init_pins_and_clocks(rcc, &mut gpio);
@@ -140,9 +140,15 @@ fn main(hw: board::Hardware) -> ! {
     let mut rend = renderer::Renderer::new(&mut lcd);
     // rend.draw_dump_bg(0, 0, (constants::DISPLAY_SIZE.0, constants::DISPLAY_SIZE.1), BACKGROUND);
 
-    // highscore
-    let mut ss_display = seven_segment::SSDisplay::new(0, 0);
-    let mut highscore: u16 = 0;
+    // coundown
+    let mut ss_display = seven_segment::SSDisplay::new(480 - seven_segment::SSDisplay::get_width(), 0); 
+
+    // score
+    let mut score: u16 = 0;
+    let mut ss_hs_display = seven_segment::SSDisplay::new(0, 0);
+    let red:u16 = renderer::RGBColor::from_rgb(255, 0, 0);
+    let green:u16 = renderer::RGBColor::from_rgb(0, 255, 0);
+    ss_hs_display.render(score, 0x8000, &mut rend);
 
     // array of all evil_targets
     let mut evil_targets: Vec<shooter::Target> = Vec::new();
@@ -155,10 +161,11 @@ fn main(hw: board::Hardware) -> ! {
 
 
     loop {
+        // seven segments display for countdown
         let tick = system_clock::ticks();
         if tick - last_ssd_render_time >= 1000 {
             counter = (counter % core::u16::MAX) + 1;
-            let ss_pixel = ss_display.render(counter, 0x8000, &mut rend);
+            ss_display.render(counter, 0x8000, &mut rend);
             last_ssd_render_time = tick;
         }
 
@@ -206,7 +213,8 @@ fn main(hw: board::Hardware) -> ! {
                 let t = evil_targets.remove(*hit_index);
                 rend.clear(t.x, t.y, (t.width, t.height));
                 evil_target_count -= 1;
-                highscore += t.bounty;
+                score += t.bounty;
+                ss_hs_display.render(score, green, &mut rend);
             }
             let mut hit_hero_targets = Target::check_for_hit(&mut hero_targets, &touches);
             hit_hero_targets.sort();
@@ -214,11 +222,12 @@ fn main(hw: board::Hardware) -> ! {
                 let t = hero_targets.remove(*hit_index);
                 rend.clear(t.x, t.y, (t.width, t.height));
                 hero_target_count -= 1;
-                if highscore < 30 {
-                    highscore = 0;
+                if score < 30 {
+                    score = 0;
                 } else {
-                    highscore -= t.bounty;
+                    score -= t.bounty;
                 }
+                ss_hs_display.render(score, red, &mut rend);
             }
         }
 
