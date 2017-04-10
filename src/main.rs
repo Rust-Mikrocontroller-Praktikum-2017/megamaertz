@@ -49,6 +49,10 @@ pub unsafe extern "C" fn reset() -> ! {
 
     stm32f7::heap::init();
 
+    // enable floating point unit
+    // let scb = stm32f7::cortex_m::peripheral::scb_mut();
+    // scb.cpacr.modify(|v| v | 0b1111 << 20);
+
     main(board::hw());
 }
 
@@ -137,7 +141,7 @@ fn main(hw: board::Hardware) -> ! {
 
     //renderer
     let mut rend = renderer::Renderer::new(&mut lcd);
-    rend.draw_dump_bg(0, 0, (constants::DISPLAY_WIDTH, constants::DISPLAY_HEIGHT), BACKGROUND);
+    rend.draw_dump_bg(0, 0, (constants::DISPLAY_SIZE.0, constants::DISPLAY_SIZE.1), BACKGROUND);
 
     let mut ss_display = seven_segment::SSDisplay::new(0, 0);
 

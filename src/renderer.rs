@@ -16,7 +16,7 @@ impl<'a> Renderer<'a> {
     }
 
     fn coord_is_inside(x: u16, y: u16) -> bool {
-        x < constants::DISPLAY_WIDTH && y < constants::DISPLAY_HEIGHT
+        x < constants::DISPLAY_SIZE.0 && y < constants::DISPLAY_SIZE.1
     }
 
     fn render_pixel(&mut self, x: u16, y: u16, color: u16) {
@@ -191,3 +191,4 @@ impl RGBColor {
         Self::from_rgb(r, g, b)
     }
 }
+

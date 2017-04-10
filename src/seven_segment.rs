@@ -8,8 +8,8 @@ struct Segment {
 impl Segment {
     pub fn new_horizontal(x_offset: u16, y_offset: u16) -> Self {
         let mut result: Vec<(u16, u16)> = Vec::new();
-        for y in 0..constants::SEGMENT_HEIGHT {
-            for x in 0..constants::SEGMENT_WIDTH {
+        for y in 0..constants::SEGMENT_SIZE.1 {
+            for x in 0..constants::SEGMENT_SIZE.0 {
                 result.push(((x + x_offset) as u16, (y + y_offset) as u16));
             }
         }
@@ -19,8 +19,8 @@ impl Segment {
 
     pub fn new_vertical(x_offset: u16, y_offset: u16) -> Self {
         let mut result: Vec<(u16, u16)> = Vec::new();
-        for y in 0..constants::SEGMENT_WIDTH {
-            for x in 0..constants::SEGMENT_HEIGHT {
+        for y in 0..constants::SEGMENT_SIZE.0 {
+            for x in 0..constants::SEGMENT_SIZE.1 {
                 result.push(((x + x_offset) as u16, (y + y_offset) as u16));
             }
         }
@@ -38,17 +38,17 @@ pub struct SSDisplay {
 impl SSDisplay {
     pub fn new(x: u16, y: u16) -> Self {
         SSDisplay {
-            segs: [Segment::new_horizontal(constants::SEGMENT_HEIGHT, 0),
-                   Segment::new_vertical(constants::SEGMENT_HEIGHT + constants::SEGMENT_WIDTH,
-                                         constants::SEGMENT_HEIGHT),
-                   Segment::new_vertical(constants::SEGMENT_HEIGHT + constants::SEGMENT_WIDTH,
-                                         constants::SEGMENT_WIDTH * 2),
-                   Segment::new_horizontal(constants::SEGMENT_HEIGHT,
-                                           constants::SEGMENT_WIDTH * 3),
-                   Segment::new_vertical(0, constants::SEGMENT_WIDTH * 2),
-                   Segment::new_vertical(0, constants::SEGMENT_HEIGHT),
-                   Segment::new_horizontal(constants::SEGMENT_HEIGHT,
-                                           constants::SEGMENT_WIDTH + constants::SEGMENT_HEIGHT)],
+            segs: [Segment::new_horizontal(constants::SEGMENT_SIZE.1, 0),
+                   Segment::new_vertical(constants::SEGMENT_SIZE.1 + constants::SEGMENT_SIZE.0,
+                                         constants::SEGMENT_SIZE.1),
+                   Segment::new_vertical(constants::SEGMENT_SIZE.1 + constants::SEGMENT_SIZE.0,
+                                         constants::SEGMENT_SIZE.0 * 2),
+                   Segment::new_horizontal(constants::SEGMENT_SIZE.1,
+                                           constants::SEGMENT_SIZE.0 * 3),
+                   Segment::new_vertical(0, constants::SEGMENT_SIZE.0 * 2),
+                   Segment::new_vertical(0, constants::SEGMENT_SIZE.1),
+                   Segment::new_horizontal(constants::SEGMENT_SIZE.1,
+                                           constants::SEGMENT_SIZE.0 + constants::SEGMENT_SIZE.1)],
             x: x,
             y: y,
         }
@@ -86,7 +86,7 @@ impl SSDisplay {
     }
 
     pub fn get_element_width() -> u16 {
-        2 * constants::SEGMENT_HEIGHT + constants::SEGMENT_WIDTH
+        2 * constants::SEGMENT_SIZE.1 + constants::SEGMENT_SIZE.0
     }
 }
 
@@ -153,3 +153,4 @@ fn push_to_vec(vec: &mut Vec<usize>, slice: &[usize]) {
         vec.push(*i)
     }
 }
+

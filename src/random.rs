@@ -41,7 +41,8 @@ impl CmwcState {
         let mut x: u32;
 
         self.i = (self.i + 1) & (constants::CMWC_CYCLE as u32 - 1);
-        t = a.wrapping_mul(self.q[self.i as usize]).wrapping_add(self.c);
+        t = a.wrapping_mul(self.q[self.i as usize])
+            .wrapping_add(self.c);
         self.c = t;
         x = t.wrapping_add(self.c);
 
@@ -55,8 +56,10 @@ impl CmwcState {
     }
 
     pub fn get_random_pos(&mut self, width: u16, height: u16) -> (u16, u16) {
-        (core::cmp::min(self.rand() as u16 % constants::DISPLAY_WIDTH - 1, constants::DISPLAY_WIDTH - width - 1),
-        core::cmp::min(self.rand() as u16 % constants::DISPLAY_HEIGHT - 1, constants::DISPLAY_HEIGHT - height - 1))
+        (core::cmp::min(self.rand() as u16 % constants::DISPLAY_SIZE.0 - 1,
+                        constants::DISPLAY_SIZE.0 - width - 1),
+         core::cmp::min(self.rand() as u16 % constants::DISPLAY_SIZE.1 - 1,
+                        constants::DISPLAY_SIZE.1 - height - 1))
     }
 }
 
@@ -71,3 +74,4 @@ fn rand_u32() -> u32 {
     let result = system_clock::ticks() as u32;
     result << 16 | (system_clock::ticks() as u32)
 }
+
