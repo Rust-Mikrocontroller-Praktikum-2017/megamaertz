@@ -8,15 +8,19 @@ pub struct Target {
     pub y: u16,
     pub width: u16,
     pub height: u16,
+    pub bounty: u16,
+    pub birthday: usize
 }
 
 impl Target {
-    pub fn new(x: u16, y: u16, width: u16, height: u16) -> Self {
+    pub fn new(x: u16, y: u16, width: u16, height: u16, bounty: u16, birthday: usize) -> Self {
         Target {
             x: x,
             y: y,
             width: width,
             height: height,
+            bounty: bounty,
+            birthday: birthday
         }
     }
 

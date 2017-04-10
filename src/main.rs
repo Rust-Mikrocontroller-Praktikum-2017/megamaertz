@@ -20,9 +20,8 @@ use stm32f7::{system_clock, sdram, lcd, i2c, audio, touch, board, embedded};
 use stm32f7::board::sai::Sai;
 use collections::vec::Vec;
 
-// static TRUMP: &'static [u8] = include_bytes!("../pics/trump.dump");
-// static constants::TARGET_SIZE_50: (u16, u16) = (42, 50);
 static TRUMP: &'static [u8] = include_bytes!("../pics/trump_cartoon.dump");
+static MEXICAN: &'static [u8] = include_bytes!("../pics/trump_cartoon.dump");
 static BACKGROUND: &'static [u8] = include_bytes!("../pics/background.dump");
 
 #[no_mangle]
@@ -143,11 +142,15 @@ fn main(hw: board::Hardware) -> ! {
     let mut rend = renderer::Renderer::new(&mut lcd);
     rend.draw_dump_bg(0, 0, (constants::DISPLAY_SIZE.0, constants::DISPLAY_SIZE.1), BACKGROUND);
 
+    // highscore
     let mut ss_display = seven_segment::SSDisplay::new(0, 0);
+    let mut highscore: u16 = 0;
 
-    // array of all targets
-    let mut targets: Vec<shooter::Target> = Vec::new();
-    let mut active_target_count = 0;
+    // array of all evil_targets
+    let mut evil_targets: Vec<shooter::Target> = Vec::new();
+    let mut evil_target_count = 0;
+    let mut hero_targets: Vec<shooter::Target> = Vec::new();
+    let mut hero_target_count = 0;
 
     let mut last_ssd_render_time = system_clock::ticks();
     let mut counter: u16 = 0;
@@ -162,13 +165,22 @@ fn main(hw: board::Hardware) -> ! {
             last_ssd_render_time = tick;
         }
 
-        // rendering random positioned trumps
-        if active_target_count < 5 {
-            let pos: (u16, u16) = rand.get_random_pos(constants::TARGET_SIZE_50.0, constants::TARGET_SIZE_50.1);
-            let new_target = shooter::Target::new(pos.0, pos.1, constants::TARGET_SIZE_50.0, constants::TARGET_SIZE_50.1);
+        // rendering random positioned evil evil_targets (trumps) 
+        if evil_target_count < 5 {
+            let pos: (u16, u16) = rand.get_random_pos(constants::DISPLAY_SIZE.0, constants::DISPLAY_SIZE.1);
+            let evil_target = shooter::Target::new(pos.0, pos.1, constants::TARGET_SIZE_50.0, constants::TARGET_SIZE_50.1, 50, tick);
             rend.draw_dump(pos.0, pos.1, constants::TARGET_SIZE_50, TRUMP);
-            targets.push(new_target);
-            active_target_count += 1;
+            evil_targets.push(evil_target);
+            evil_target_count += 1;
+        }
+
+        // // rendering random positioned hero evil_targets (mexicans) 
+        if hero_target_count < 3 {
+            let pos: (u16, u16) = rand.get_random_pos(constants::DISPLAY_SIZE.0, constants::DISPLAY_SIZE.1);
+            let hero_target = shooter::Target::new(pos.0, pos.1, constants::TARGET_SIZE_50.0, constants::TARGET_SIZE_50.1, 30, tick);
+            rend.draw_dump(pos.0, pos.1, constants::TARGET_SIZE_50, MEXICAN);
+            evil_targets.push(hero_target);
+            hero_target_count += 1;
         }
 
         // check for hit and render cursor
@@ -179,16 +191,46 @@ fn main(hw: board::Hardware) -> ! {
             touches.push((touch.x, touch.y));
         }
 
+        // check if voice detected
         if vol_limit_reached(sai_2) {
-            let mut hit_targets = shooter::Target::check_for_hit(&mut targets, &touches);
-            hit_targets.sort();
-            for hit_index in hit_targets.iter().rev() {
-                let t = targets.remove(*hit_index);
+            let mut hit_evil_targets = shooter::Target::check_for_hit(&mut evil_targets, &touches);
+            hit_evil_targets.sort();
+            for hit_index in hit_evil_targets.iter().rev() {
+                let t = evil_targets.remove(*hit_index);
                 rend.clear(t.x, t.y, (t.width, t.height));
-                active_target_count -= 1;
+                evil_target_count -= 1;
+                highscore += t.bounty;
+            }
+            let mut hit_hero_targets = shooter::Target::check_for_hit(&mut hero_targets, &touches);
+            hit_hero_targets.sort();
+            for hit_index in hit_hero_targets.iter().rev() {
+                let t = hero_targets.remove(*hit_index);
+                rend.clear(t.x, t.y, (t.width, t.height));
+                hero_target_count -= 1;
+                if highscore < 30 {
+                    highscore = 0;
+                } else {
+                    highscore -= t.bounty;
+                }
             }
         }
 
+        // dont let targets live longer than 8 or 6 secs
+        let evil_len = evil_targets.len();
+        for i in (0..evil_len).rev() {
+            if tick - evil_targets[i].birthday > 8000 {
+                rend.clear(evil_targets[i].x, evil_targets[i].y, (evil_targets[i].width, evil_targets[i].height));
+                hero_targets.remove(i);
+            }
+        }
+        
+        let hero_len = hero_targets.len();
+        for i in (0..hero_len).rev() {
+            if tick - hero_targets[i].birthday > 6000 {
+                rend.clear(hero_targets[i].x, hero_targets[i].y, (hero_targets[i].width, hero_targets[i].height));
+                hero_targets.remove(i);
+            }
+        }
     }
 }
 
