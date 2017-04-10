@@ -106,42 +106,55 @@ fn u16_to_bcd(n: u16) -> [u16; 5] {
     result
 }
 
+
 fn get_segment_indices(num: u16) -> (Vec<usize>, Vec<usize>) {
     let mut print: Vec<usize> = Vec::new();
     let mut alpha: Vec<usize> = Vec::new();
 
-    if num == 0 {
-        push_to_vec(&mut print, &[0, 1, 2, 3, 4, 5]);
-        push_to_vec(&mut alpha, &[6]);
-    } else if num == 1 {
-        push_to_vec(&mut print, &[1, 2]);
-        push_to_vec(&mut alpha, &[0, 3, 4, 5, 6]);
-    } else if num == 2 {
-        push_to_vec(&mut print, &[0, 1, 3, 4, 6]);
-        push_to_vec(&mut alpha, &[2, 5]);
-    } else if num == 3 {
-        push_to_vec(&mut print, &[0, 1, 2, 3, 6]);
-        push_to_vec(&mut alpha, &[4, 5]);
-    } else if num == 4 {
-        push_to_vec(&mut print, &[1, 2, 5, 6]);
-        push_to_vec(&mut alpha, &[0, 3, 4]);
-    } else if num == 5 {
-        push_to_vec(&mut print, &[0, 2, 3, 5, 6]);
-        push_to_vec(&mut alpha, &[1, 4]);
-    } else if num == 6 {
-        push_to_vec(&mut print, &[0, 2, 3, 4, 5, 6]);
-        push_to_vec(&mut alpha, &[1]);
-    } else if num == 7 {
-        push_to_vec(&mut print, &[0, 1, 2]);
-        push_to_vec(&mut alpha, &[3, 4, 5, 6]);
-    } else if num == 8 {
-        push_to_vec(&mut print, &[0, 1, 2, 3, 4, 5, 6]);
-    } else if num == 9 {
-        push_to_vec(&mut print, &[0, 1, 2, 3, 5, 6]);
-        push_to_vec(&mut alpha, &[4]);
-    } else {
-        push_to_vec(&mut print, &[6]);
-        push_to_vec(&mut alpha, &[0, 1, 2, 3, 4, 5]);
+    match num {
+        0 => {
+            push_to_vec(&mut print, &[0, 1, 2, 3, 4, 5]);
+            push_to_vec(&mut alpha, &[6]);
+        } 
+        1 => {
+            push_to_vec(&mut print, &[1, 2]);
+            push_to_vec(&mut alpha, &[0, 3, 4, 5, 6]);
+        } 
+        2 => {
+            push_to_vec(&mut print, &[0, 1, 3, 4, 6]);
+            push_to_vec(&mut alpha, &[2, 5]);
+        } 
+        3 => {
+            push_to_vec(&mut print, &[0, 1, 2, 3, 6]);
+            push_to_vec(&mut alpha, &[4, 5]);
+        }
+        4 => {
+            push_to_vec(&mut print, &[1, 2, 5, 6]);
+            push_to_vec(&mut alpha, &[0, 3, 4]);
+        }
+        5 => {
+            push_to_vec(&mut print, &[0, 2, 3, 5, 6]);
+            push_to_vec(&mut alpha, &[1, 4]);
+        }
+        6 => {
+            push_to_vec(&mut print, &[0, 2, 3, 4, 5, 6]);
+            push_to_vec(&mut alpha, &[1]);
+        }
+        7 => {
+            push_to_vec(&mut print, &[0, 1, 2]);
+            push_to_vec(&mut alpha, &[3, 4, 5, 6]);
+        }
+        8 => {
+            push_to_vec(&mut print, &[0, 1, 2, 3, 4, 5, 6]);
+        }
+        9 => {
+            push_to_vec(&mut print, &[0, 1, 2, 3, 5, 6]);
+            push_to_vec(&mut alpha, &[4]);
+        }
+        _ => {
+            push_to_vec(&mut print, &[6]);
+            push_to_vec(&mut alpha, &[0, 1, 2, 3, 4, 5]);
+        }
     }
 
     (print, alpha)

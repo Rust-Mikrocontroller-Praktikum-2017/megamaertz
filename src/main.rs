@@ -222,11 +222,7 @@ fn main(hw: board::Hardware) -> ! {
                 let t = hero_targets.remove(*hit_index);
                 rend.clear(t.x, t.y, (t.width, t.height));
                 hero_target_count -= 1;
-                if score < 30 {
-                    score = 0;
-                } else {
-                    score -= t.bounty;
-                }
+                score -= if score < 30 {0}else{t.bounty};
                 ss_hs_display.render(score, red, &mut rend);
             }
         }

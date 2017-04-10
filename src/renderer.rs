@@ -174,7 +174,7 @@ pub struct RGBColor();
 
 impl RGBColor {
     pub fn from_rgb(r: u8, g: u8, b: u8) -> u16 {
-        Self::from_rgb_with_alpha(1, r, g, b)
+        Self::from_rgb_with_alpha(42, r, g, b)
     }
 
     pub fn from_rgb_with_alpha(a: u8, r: u8, g: u8, b: u8) -> u16 {
