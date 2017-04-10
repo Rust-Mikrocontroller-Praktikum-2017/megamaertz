@@ -115,15 +115,15 @@ fn get_segment_indices(num: u16) -> (Vec<usize>, Vec<usize>) {
         0 => {
             push_to_vec(&mut print, &[0, 1, 2, 3, 4, 5]);
             push_to_vec(&mut alpha, &[6]);
-        } 
+        }
         1 => {
             push_to_vec(&mut print, &[1, 2]);
             push_to_vec(&mut alpha, &[0, 3, 4, 5, 6]);
-        } 
+        }
         2 => {
             push_to_vec(&mut print, &[0, 1, 3, 4, 6]);
             push_to_vec(&mut alpha, &[2, 5]);
-        } 
+        }
         3 => {
             push_to_vec(&mut print, &[0, 1, 2, 3, 6]);
             push_to_vec(&mut alpha, &[4, 5]);

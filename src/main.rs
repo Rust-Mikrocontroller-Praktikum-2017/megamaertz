@@ -122,7 +122,7 @@ fn main(hw: board::Hardware) -> ! {
     // lcd controller
     let mut lcd = lcd::init(ltdc, rcc, &mut gpio);
     lcd.clear_screen();
-    lcd.set_background_color(lcd::Color::rgb(255,193,37));
+    lcd.set_background_color(lcd::Color::rgb(255, 193, 37));
 
     //i2c
     i2c::init_pins_and_clocks(rcc, &mut gpio);
@@ -139,16 +139,20 @@ fn main(hw: board::Hardware) -> ! {
 
     //renderer
     let mut rend = renderer::Renderer::new(&mut lcd);
-    rend.draw_dump_bg(0, 0, (constants::DISPLAY_SIZE.0, constants::DISPLAY_SIZE.1), BACKGROUND);
+    rend.draw_dump_bg(0,
+                      0,
+                      (constants::DISPLAY_SIZE.0, constants::DISPLAY_SIZE.1),
+                      BACKGROUND);
 
     // coundown
-    let mut ss_display = seven_segment::SSDisplay::new(480 - seven_segment::SSDisplay::get_width(), 0);
+    let mut ss_display = seven_segment::SSDisplay::new(480 - seven_segment::SSDisplay::get_width(),
+                                                       0);
 
     // score
     let mut score: u16 = 0;
     let mut ss_hs_display = seven_segment::SSDisplay::new(0, 0);
-    let red:u16 = renderer::RGBColor::from_rgb(255, 0, 0);
-    let green:u16 = renderer::RGBColor::from_rgb(0, 255, 0);
+    let red: u16 = renderer::RGBColor::from_rgb(255, 0, 0);
+    let green: u16 = renderer::RGBColor::from_rgb(0, 255, 0);
     ss_hs_display.render(score, 0x8000, &mut rend);
 
     // array of all evil_targets
@@ -216,7 +220,7 @@ fn main(hw: board::Hardware) -> ! {
             for hit_index in hit_hero_targets.iter().rev() {
                 let t = hero_targets.remove(*hit_index);
                 rend.clear(t.x, t.y, (t.width, t.height));
-                score -= if score < 30 {0}else{t.bounty};
+                score -= if score < 30 { 0 } else { t.bounty };
                 ss_hs_display.render(score, red, &mut rend);
             }
         }
@@ -257,14 +261,21 @@ fn vol_limit_reached(sai_2: &'static Sai) -> bool {
 
 fn get_rnd_lifetime(rnd: &mut random::Rng) -> usize {
     let mut num = rnd.rand() as usize;
-    num = num & 0x3FFF;
+    num &= 0x3FFF;
     core::cmp::max(num, 5000)
 }
 
-fn get_rnd_pos(rand: &mut random::Rng, existing_hero: &Vec<Target>, existing_evil: &Vec<Target>) -> (u16, u16) {
-    let mut pos = renderer::Renderer::get_random_pos(rand, constants::TARGET_SIZE_50.0, constants::TARGET_SIZE_50.1);
+fn get_rnd_pos(rand: &mut random::Rng,
+               existing_hero: &[Target],
+               existing_evil: &[Target])
+               -> (u16, u16) {
+    let mut pos = renderer::Renderer::get_random_pos(rand,
+                                                     constants::TARGET_SIZE_50.0,
+                                                     constants::TARGET_SIZE_50.1);
     while !pos_is_okay(pos, existing_hero, existing_evil) {
-        pos = renderer::Renderer::get_random_pos(rand, constants::TARGET_SIZE_50.0, constants::TARGET_SIZE_50.1);
+        pos = renderer::Renderer::get_random_pos(rand,
+                                                 constants::TARGET_SIZE_50.0,
+                                                 constants::TARGET_SIZE_50.1);
     }
     pos
 }
@@ -285,10 +296,11 @@ fn are_overlapping_targets(target: &Target, pos: (u16, u16)) -> bool {
 }
 
 fn point_is_within(point: (u16, u16), corner_ul: (u16, u16), corner_lr: (u16, u16)) -> bool {
-    point.0 >= corner_ul.0 && point.0 <= corner_lr.0 && point.1 >= corner_ul.1 && point.1 <= corner_lr.1
+    point.0 >= corner_ul.0 && point.0 <= corner_lr.0 && point.1 >= corner_ul.1 &&
+    point.1 <= corner_lr.1
 }
 
-fn pos_is_okay(pos: (u16, u16), existing_hero: &Vec<Target>, existing_evil: &Vec<Target>) -> bool {
+fn pos_is_okay(pos: (u16, u16), existing_hero: &[Target], existing_evil: &[Target]) -> bool {
     for hero in existing_hero {
         if are_overlapping_targets(hero, pos) {
             return false;

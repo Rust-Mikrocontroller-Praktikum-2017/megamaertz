@@ -8,7 +8,8 @@ pub trait Rng {
 
 // Mersenne Twister 32-bits implementation.
 //
-// See [Mersenne Twister Homepage](http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/MT2002/emt19937ar.html)
+// See [Mersenne Twister Homepage]
+//(http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/MT2002/emt19937ar.html)
 // for more informations.
 //
 // See: https://github.com/KokaKiwi/rust-mersenne-twister/blob/master/src/mt32.rs
@@ -106,10 +107,16 @@ impl Rng for MTRng32 {
     }
 }
 
+impl Default for MTRng32 {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 // Access Hardware Random Register to Seed the
 // pseudo random number generator
 const RNG_BASE_ADDR: u32 = 0x5006_0800;
-const RNG_CR: u32 = RNG_BASE_ADDR + 0x0;
+const RNG_CR: u32 = RNG_BASE_ADDR;
 const RNG_STATUS: u32 = RNG_BASE_ADDR + 0x4;
 const RNG_DATA: u32 = RNG_BASE_ADDR + 0x8;
 
