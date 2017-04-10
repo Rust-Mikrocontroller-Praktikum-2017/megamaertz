@@ -23,6 +23,7 @@ use collections::vec::Vec;
 use shooter::Target;
 
 static TRUMP: &'static [u8] = include_bytes!("../pics/trump_cartoon.dump");
+// static SUPER_TRUMP: &'static [u8] = include_bytes!("../pics/mexican_trump_head.dump");
 static MEXICAN: &'static [u8] = include_bytes!("../pics/mexican_cartoon.dump");
 static BACKGROUND: &'static [u8] = include_bytes!("../pics/background.dump");
 
@@ -138,7 +139,7 @@ fn main(hw: board::Hardware) -> ! {
 
     //renderer
     let mut rend = renderer::Renderer::new(&mut lcd);
-    // rend.draw_dump_bg(0, 0, (constants::DISPLAY_SIZE.0, constants::DISPLAY_SIZE.1), BACKGROUND);
+    rend.draw_dump_bg(0, 0, (constants::DISPLAY_SIZE.0, constants::DISPLAY_SIZE.1), BACKGROUND);
 
     // coundown
     let mut ss_display = seven_segment::SSDisplay::new(480 - seven_segment::SSDisplay::get_width(), 0);
