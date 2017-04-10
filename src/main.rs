@@ -141,7 +141,7 @@ fn main(hw: board::Hardware) -> ! {
     // rend.draw_dump_bg(0, 0, (constants::DISPLAY_SIZE.0, constants::DISPLAY_SIZE.1), BACKGROUND);
 
     // coundown
-    let mut ss_display = seven_segment::SSDisplay::new(480 - seven_segment::SSDisplay::get_width(), 0); 
+    let mut ss_display = seven_segment::SSDisplay::new(480 - seven_segment::SSDisplay::get_width(), 0);
 
     // score
     let mut score: u16 = 0;
@@ -152,13 +152,10 @@ fn main(hw: board::Hardware) -> ! {
 
     // array of all evil_targets
     let mut evil_targets: Vec<shooter::Target> = Vec::new();
-    let mut evil_target_count = 0;
     let mut hero_targets: Vec<shooter::Target> = Vec::new();
-    let mut hero_target_count = 0;
 
     let mut last_ssd_render_time = system_clock::ticks();
     let mut counter: u16 = 0;
-
 
     loop {
         // seven segments display for countdown
@@ -170,7 +167,7 @@ fn main(hw: board::Hardware) -> ! {
         }
 
         // rendering random positioned evil evil_targets (trumps)
-        while evil_target_count < 5 {
+        while evil_targets.len() < 5 {
             let lifetime = get_rnd_lifetime(&mut rand);
             let pos: (u16, u16) = get_rnd_pos(&mut rand, &hero_targets, &evil_targets);
             let evil_target = Target::new(pos.0,
@@ -182,11 +179,10 @@ fn main(hw: board::Hardware) -> ! {
                                           lifetime);
             rend.draw_dump(pos.0, pos.1, constants::TARGET_SIZE_50, TRUMP);
             evil_targets.push(evil_target);
-            evil_target_count += 1;
         }
 
         // rendering random positioned hero evil_targets (mexicans)
-        while hero_target_count < 3 {
+        while hero_targets.len() < 3 {
             let lifetime = get_rnd_lifetime(&mut rand);
             let pos: (u16, u16) = get_rnd_pos(&mut rand, &hero_targets, &evil_targets);
             let hero_target = shooter::Target::new(pos.0,
@@ -198,7 +194,6 @@ fn main(hw: board::Hardware) -> ! {
                                                    lifetime);
             rend.draw_dump(pos.0, pos.1, constants::TARGET_SIZE_50, MEXICAN);
             hero_targets.push(hero_target);
-            hero_target_count += 1;
         }
 
         let mut touches: Vec<(u16, u16)> = Vec::new();
@@ -212,7 +207,6 @@ fn main(hw: board::Hardware) -> ! {
             for hit_index in hit_evil_targets.iter().rev() {
                 let t = evil_targets.remove(*hit_index);
                 rend.clear(t.x, t.y, (t.width, t.height));
-                evil_target_count -= 1;
                 score += t.bounty;
                 ss_hs_display.render(score, green, &mut rend);
             }
@@ -221,7 +215,6 @@ fn main(hw: board::Hardware) -> ! {
             for hit_index in hit_hero_targets.iter().rev() {
                 let t = hero_targets.remove(*hit_index);
                 rend.clear(t.x, t.y, (t.width, t.height));
-                hero_target_count -= 1;
                 score -= if score < 30 {0}else{t.bounty};
                 ss_hs_display.render(score, red, &mut rend);
             }
@@ -232,7 +225,6 @@ fn main(hw: board::Hardware) -> ! {
             if tick - evil_targets[i].birthday > evil_targets[i].lifetime {
                 let t = evil_targets.remove(i);
                 rend.clear(t.x, t.y, (t.width, t.height));
-                evil_target_count -= 1;
             }
         }
 
@@ -240,7 +232,6 @@ fn main(hw: board::Hardware) -> ! {
             if tick - hero_targets[i].birthday > hero_targets[i].lifetime {
                 let t = hero_targets.remove(i);
                 rend.clear(t.x, t.y, (t.width, t.height));
-                hero_target_count -= 1;
             }
         }
     }
@@ -278,7 +269,7 @@ fn get_rnd_pos(rand: &mut random::Rng, existing_hero: &Vec<Target>, existing_evi
 }
 
 fn are_overlapping_targets(target: &Target, pos: (u16, u16)) -> bool {
-    let corner_ur = (target.x, target.y);
+    let corner_ul = (target.x, target.y);
     let corner_lr = (target.x + target.width, target.y + target.height);
 
     let x1 = pos.0;
@@ -286,14 +277,14 @@ fn are_overlapping_targets(target: &Target, pos: (u16, u16)) -> bool {
     let x2 = pos.0 + constants::TARGET_SIZE_50.0;
     let y2 = pos.1 + constants::TARGET_SIZE_50.1;
 
-    point_is_within((x1, y1), corner_ur, corner_lr) ||
-    point_is_within((x2, y2), corner_ur, corner_lr) ||
-    point_is_within((x1, y2), corner_ur, corner_lr) ||
-    point_is_within((x2, y1), corner_ur, corner_lr)
+    point_is_within((x1, y1), corner_ul, corner_lr) ||
+    point_is_within((x2, y2), corner_ul, corner_lr) ||
+    point_is_within((x1, y2), corner_ul, corner_lr) ||
+    point_is_within((x2, y1), corner_ul, corner_lr)
 }
 
 fn point_is_within(point: (u16, u16), corner_ul: (u16, u16), corner_lr: (u16, u16)) -> bool {
-    point.0 > corner_ul.0 && point.0 < corner_lr.0 && point.1 > corner_ul.1 && point.1 < corner_lr.1
+    point.0 >= corner_ul.0 && point.0 <= corner_lr.0 && point.1 >= corner_ul.1 && point.1 <= corner_lr.1
 }
 
 fn pos_is_okay(pos: (u16, u16), existing_hero: &Vec<Target>, existing_evil: &Vec<Target>) -> bool {
