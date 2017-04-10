@@ -1,8 +1,6 @@
 use stm32f7::lcd;
 use core::ptr;
-
-const DISPLAY_WIDTH: u16 = 480;
-const DISPLAY_HEIGHT: u16 = 272;
+use constants;
 
 pub struct Renderer<'a> {
     display: &'a mut lcd::Lcd,
@@ -18,7 +16,7 @@ impl<'a> Renderer<'a> {
     }
 
     fn coord_is_inside(x: u16, y: u16) -> bool {
-        x < DISPLAY_WIDTH && y < DISPLAY_HEIGHT
+        x < constants::DISPLAY_WIDTH && y < constants::DISPLAY_HEIGHT
     }
 
     fn render_pixel(&mut self, x: u16, y: u16, color: u16) {

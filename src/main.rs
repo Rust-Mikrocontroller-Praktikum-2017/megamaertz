@@ -14,17 +14,15 @@ pub mod renderer;
 pub mod seven_segment;
 pub mod random;
 pub mod shooter;
+pub mod constants;
 
 use stm32f7::{system_clock, sdram, lcd, i2c, audio, touch, board, embedded};
 use stm32f7::board::sai::Sai;
 use collections::vec::Vec;
 
 // static TRUMP: &'static [u8] = include_bytes!("../pics/trump.dump");
-// static TRUMP_SIZE: (u16, u16) = (42, 50);
+// static constants::TARGET_SIZE_50: (u16, u16) = (42, 50);
 static TRUMP: &'static [u8] = include_bytes!("../pics/trump_cartoon.dump");
-static TRUMP_SIZE: (u16, u16) = (50, 50);
-
-const DISPLAY_SIZE: (u16, u16) = (480, 272);
 static BACKGROUND: &'static [u8] = include_bytes!("../pics/background.dump");
 
 #[no_mangle]
@@ -50,10 +48,6 @@ pub unsafe extern "C" fn reset() -> ! {
     r0::zero_bss(bss_start, bss_end);
 
     stm32f7::heap::init();
-
-    // enable floating point unit
-    let scb = stm32f7::cortex_m::peripheral::scb_mut();
-    scb.cpacr.modify(|v| v | 0b1111 << 20);
 
     main(board::hw());
 }
@@ -143,7 +137,7 @@ fn main(hw: board::Hardware) -> ! {
 
     //renderer
     let mut rend = renderer::Renderer::new(&mut lcd);
-    rend.draw_dump_bg(0, 0, DISPLAY_SIZE, BACKGROUND);
+    rend.draw_dump_bg(0, 0, (constants::DISPLAY_WIDTH, constants::DISPLAY_HEIGHT), BACKGROUND);
 
     let mut ss_display = seven_segment::SSDisplay::new(0, 0);
 
@@ -166,9 +160,9 @@ fn main(hw: board::Hardware) -> ! {
 
         // rendering random positioned trumps
         if active_target_count < 5 {
-            let pos: (u16, u16) = rand.get_random_pos(DISPLAY_SIZE.0, DISPLAY_SIZE.1);
-            let new_target = shooter::Target::new(pos.0, pos.1, TRUMP_SIZE.0, TRUMP_SIZE.1);
-            rend.draw_dump(pos.0, pos.1, TRUMP_SIZE, TRUMP);
+            let pos: (u16, u16) = rand.get_random_pos(constants::TARGET_SIZE_50.0, constants::TARGET_SIZE_50.1);
+            let new_target = shooter::Target::new(pos.0, pos.1, constants::TARGET_SIZE_50.0, constants::TARGET_SIZE_50.1);
+            rend.draw_dump(pos.0, pos.1, constants::TARGET_SIZE_50, TRUMP);
             targets.push(new_target);
             active_target_count += 1;
         }
