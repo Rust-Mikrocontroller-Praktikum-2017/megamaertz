@@ -164,14 +164,6 @@ fn main(hw: board::Hardware) -> ! {
             last_ssd_render_time = tick;
         }
 
-        if vol_limit_reached(sai_2) {
-            // draw debug square
-            rend.draw_u16(455, 0, 25, &[0x8000 as u16; 625]);
-        } else {
-            // undraw debug square
-            rend.draw_u16(455, 0, 25, &[0x0000 as u16; 625]);
-        }
-
         // rendering random positioned trumps
         if active_target_count < 5 {
             let pos: (u16, u16) = rand.get_random_pos(DISPLAY_SIZE.0, DISPLAY_SIZE.1);
@@ -188,13 +180,17 @@ fn main(hw: board::Hardware) -> ! {
             rend.cursor(touch.x, touch.y);
             touches.push((touch.x, touch.y));
         }
-        let mut hit_targets = shooter::Target::check_for_hit(&mut targets, &touches);
-        hit_targets.sort();
-        for hit_index in hit_targets.iter().rev() {
-            let t = targets.remove(*hit_index);
-            rend.clear(t.x, t.y, (t.width, t.height));
-            active_target_count -= 1;
+
+        if vol_limit_reached(sai_2) {
+            let mut hit_targets = shooter::Target::check_for_hit(&mut targets, &touches);
+            hit_targets.sort();
+            for hit_index in hit_targets.iter().rev() {
+                let t = targets.remove(*hit_index);
+                rend.clear(t.x, t.y, (t.width, t.height));
+                active_target_count -= 1;
+            }
         }
+
     }
 }
 
@@ -211,6 +207,6 @@ fn vol_limit_reached(sai_2: &'static Sai) -> bool {
     };
 
     // mic_data reprents our "volume". Magic number 420 after testing.
-    let blaze_it = 420;
+    let blaze_it = 2000;
     mic_data > blaze_it
 }
