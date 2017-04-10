@@ -9,6 +9,7 @@ extern crate stm32f7_discovery as stm32f7;
 
 extern crate collections;
 extern crate alloc;
+extern crate bit_field;
 
 pub mod renderer;
 pub mod seven_segment;
