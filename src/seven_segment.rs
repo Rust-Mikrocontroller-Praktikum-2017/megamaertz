@@ -1,5 +1,6 @@
 use collections::vec::Vec;
 use constants;
+use renderer::Renderer;
 
 struct Segment {
     pixel: Vec<(u16, u16)>,
@@ -54,9 +55,7 @@ impl SSDisplay {
         }
     }
 
-    pub fn render(&mut self, n: u16, color: u16) -> Vec<(u16, u16, u16)> {
-        let mut result: Vec<(u16, u16, u16)> = Vec::new();
-
+    pub fn render(&mut self, n: u16, color: u16, rend: &mut Renderer) {
         let bcd = u16_to_bcd(n);
         let mut offset = 0;
         for i in (0..5).rev() {
@@ -64,21 +63,21 @@ impl SSDisplay {
             for s_num in print {
                 let seg = &self.segs[s_num];
                 for p in &seg.pixel {
-                    result.push((p.0 + offset + self.x, p.1 + self.y, color));
+                    // result.push((p.0 + offset + self.x, p.1 + self.y, color));
+                    rend.render_pixel(p.0 + offset + self.x, p.1 + self.y, color);
                 }
             }
 
             for a_num in alpha {
                 let seg = &self.segs[a_num];
                 for p in &seg.pixel {
-                    result.push((p.0 + offset + self.x, p.1 + self.y, 0x0000));
+                    // result.push((p.0 + offset + self.x, p.1 + self.y, 0x0000));
+                    rend.render_pixel(p.0 + offset + self.x, p.1 + self.y, 0x0000);
                 }
             }
 
             offset += constants::ELEMENT_GAP + Self::get_element_width();
         }
-
-        result
     }
 
     pub fn get_width() -> u16 {

@@ -158,8 +158,7 @@ fn main(hw: board::Hardware) -> ! {
         let tick = system_clock::ticks();
         if tick - last_ssd_render_time >= 1000 {
             counter = (counter % core::u16::MAX) + 1;
-            let ss_pixel = ss_display.render(counter, 0x8000);
-            rend.draw_u16_tuple(ss_pixel.as_slice());
+            let ss_pixel = ss_display.render(counter, 0x8000, &mut rend);
             last_ssd_render_time = tick;
         }
 

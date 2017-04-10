@@ -21,18 +21,18 @@ impl<'a> Renderer<'a> {
         x < constants::DISPLAY_SIZE.0 && y < constants::DISPLAY_SIZE.1
     }
 
-    fn render_pixel(&mut self, x: u16, y: u16, color: u16) {
-        if Self::coord_is_inside(x, y) {
-            self.display.print_point_color_at(x, y, color);
-        }
-    }
-
     pub fn render_bg(&mut self, x: u16, y: u16, color: u16) {
         if Self::coord_is_inside(x, y) {
             let addr: u32 = 0xC000_0000;
             let pixel = (y as u32) * 480 + (x as u32);
             let pixel_color = (addr + pixel * 2) as *mut u16;
             unsafe { ptr::write_volatile(pixel_color, color) };
+        }
+    }
+
+    pub fn render_pixel(&mut self, x: u16, y: u16, color: u16) {
+        if Self::coord_is_inside(x, y) {
+            self.display.print_point_color_at(x, y, color);
         }
     }
 
