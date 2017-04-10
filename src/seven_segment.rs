@@ -153,4 +153,3 @@ fn push_to_vec(vec: &mut Vec<usize>, slice: &[usize]) {
         vec.push(*i)
     }
 }
-

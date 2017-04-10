@@ -191,4 +191,3 @@ impl RGBColor {
         Self::from_rgb(r, g, b)
     }
 }
-

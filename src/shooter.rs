@@ -1,26 +1,32 @@
 use collections::vec::Vec;
 
-// const TARGET_WIDTH: u16 = 50;
-// const TARGET_HEIGHT: u16 = 50;
-
 pub struct Target {
     pub x: u16,
     pub y: u16,
     pub width: u16,
     pub height: u16,
     pub bounty: u16,
-    pub birthday: usize
+    pub birthday: usize,
+    pub lifetime: usize,
 }
 
 impl Target {
-    pub fn new(x: u16, y: u16, width: u16, height: u16, bounty: u16, birthday: usize) -> Self {
+    pub fn new(x: u16,
+               y: u16,
+               width: u16,
+               height: u16,
+               bounty: u16,
+               birthday: usize,
+               lifetime: usize)
+               -> Self {
         Target {
             x: x,
             y: y,
             width: width,
             height: height,
             bounty: bounty,
-            birthday: birthday
+            birthday: birthday,
+            lifetime: lifetime,
         }
     }
 
@@ -40,3 +46,4 @@ impl Target {
         indices
     }
 }
+

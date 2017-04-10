@@ -22,7 +22,7 @@ use stm32f7::board::sai::Sai;
 use collections::vec::Vec;
 
 static TRUMP: &'static [u8] = include_bytes!("../pics/trump_cartoon.dump");
-static MEXICAN: &'static [u8] = include_bytes!("../pics/trump_cartoon.dump");
+static MEXICAN: &'static [u8] = include_bytes!("../pics/mexican_cartoon.dump");
 static BACKGROUND: &'static [u8] = include_bytes!("../pics/background.dump");
 
 #[no_mangle]
@@ -141,7 +141,7 @@ fn main(hw: board::Hardware) -> ! {
 
     //renderer
     let mut rend = renderer::Renderer::new(&mut lcd);
-    rend.draw_dump_bg(0, 0, (constants::DISPLAY_SIZE.0, constants::DISPLAY_SIZE.1), BACKGROUND);
+    // rend.draw_dump_bg(0, 0, (constants::DISPLAY_SIZE.0, constants::DISPLAY_SIZE.1), BACKGROUND);
 
     // highscore
     let mut ss_display = seven_segment::SSDisplay::new(0, 0);
@@ -166,21 +166,38 @@ fn main(hw: board::Hardware) -> ! {
             last_ssd_render_time = tick;
         }
 
-        // rendering random positioned evil evil_targets (trumps) 
-        if evil_target_count < 5 {
-            let pos: (u16, u16) = rand.get_random_pos(constants::DISPLAY_SIZE.0, constants::DISPLAY_SIZE.1);
-            let evil_target = shooter::Target::new(pos.0, pos.1, constants::TARGET_SIZE_50.0, constants::TARGET_SIZE_50.1, 50, tick);
+        // rendering random positioned evil evil_targets (trumps)
+        while evil_target_count < 5 {
+            let lifetime = get_rnd_lifetime(&mut rand);
+            let pos: (u16, u16) =
+                rand.get_random_pos(constants::TARGET_SIZE_50.0, constants::TARGET_SIZE_50.1);
+            let evil_target = shooter::Target::new(pos.0,
+                                                   pos.1,
+                                                   constants::TARGET_SIZE_50.0,
+                                                   constants::TARGET_SIZE_50.1,
+                                                   50,
+                                                   tick,
+                                                   lifetime);
             rend.draw_dump(pos.0, pos.1, constants::TARGET_SIZE_50, TRUMP);
             evil_targets.push(evil_target);
             evil_target_count += 1;
         }
 
-        // // rendering random positioned hero evil_targets (mexicans) 
-        if hero_target_count < 3 {
-            let pos: (u16, u16) = rand.get_random_pos(constants::DISPLAY_SIZE.0, constants::DISPLAY_SIZE.1);
-            let hero_target = shooter::Target::new(pos.0, pos.1, constants::TARGET_SIZE_50.0, constants::TARGET_SIZE_50.1, 30, tick);
+        // // rendering random positioned hero evil_targets (mexicans)
+        while hero_target_count < 3 {
+            let lifetime = get_rnd_lifetime(&mut rand);
+            let pos: (u16, u16) =
+                rand.get_random_pos(constants::TARGET_SIZE_50.0, constants::TARGET_SIZE_50.1);
+
+            let hero_target = shooter::Target::new(pos.0,
+                                                   pos.1,
+                                                   constants::TARGET_SIZE_50.0,
+                                                   constants::TARGET_SIZE_50.1,
+                                                   30,
+                                                   tick,
+                                                   lifetime);
             rend.draw_dump(pos.0, pos.1, constants::TARGET_SIZE_50, MEXICAN);
-            evil_targets.push(hero_target);
+            hero_targets.push(hero_target);
             hero_target_count += 1;
         }
 
@@ -216,20 +233,24 @@ fn main(hw: board::Hardware) -> ! {
             }
         }
 
-        // dont let targets live longer than 8 or 6 secs
-        let evil_len = evil_targets.len();
-        for i in (0..evil_len).rev() {
-            if tick - evil_targets[i].birthday > 8000 {
-                rend.clear(evil_targets[i].x, evil_targets[i].y, (evil_targets[i].width, evil_targets[i].height));
-                hero_targets.remove(i);
+        // dont let targets live longer than lifetime secs
+        for i in (0..evil_targets.len()).rev() {
+            if tick - evil_targets[i].birthday > evil_targets[i].lifetime {
+                rend.clear(evil_targets[i].x,
+                           evil_targets[i].y,
+                           (evil_targets[i].width, evil_targets[i].height));
+                evil_targets.remove(i);
+                evil_target_count -= 1;
             }
         }
-        
-        let hero_len = hero_targets.len();
-        for i in (0..hero_len).rev() {
-            if tick - hero_targets[i].birthday > 6000 {
-                rend.clear(hero_targets[i].x, hero_targets[i].y, (hero_targets[i].width, hero_targets[i].height));
+
+        for i in (0..hero_targets.len()).rev() {
+            if tick - hero_targets[i].birthday > hero_targets[i].lifetime {
+                rend.clear(hero_targets[i].x,
+                           hero_targets[i].y,
+                           (hero_targets[i].width, hero_targets[i].height));
                 hero_targets.remove(i);
+                hero_target_count -= 1;
             }
         }
     }
@@ -250,4 +271,9 @@ fn vol_limit_reached(sai_2: &'static Sai) -> bool {
     // mic_data reprents our "volume". Magic number 420 after testing.
     let blaze_it = 2000;
     mic_data > blaze_it
+}
+
+fn get_rnd_lifetime(rnd: &mut random::CmwcState) -> usize {
+    let num = rnd.rand() as usize;
+    core::cmp::max(core::cmp::min(num, 5000), 10000)
 }

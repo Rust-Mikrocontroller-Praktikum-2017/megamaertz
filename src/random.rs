@@ -66,11 +66,11 @@ impl CmwcState {
         self.q[self.i as usize]
     }
 
-    pub fn get_random_pos(&mut self, width: u16, height: u16) -> (u16, u16) {
-        (cmp::min(self.rand() as u16 % constants::DISPLAY_SIZE.0 - 1,
-                        constants::DISPLAY_SIZE.0 - width - 1),
-         cmp::min(self.rand() as u16 % constants::DISPLAY_SIZE.1 - 1,
-                        constants::DISPLAY_SIZE.1 - height - 1))
+    pub fn get_random_pos(&mut self, target_width: u16, target_height: u16) -> (u16, u16) {
+        (core::cmp::min(self.rand() as u16 % constants::DISPLAY_SIZE.0 - 1,
+                        constants::DISPLAY_SIZE.0 - target_width - 1),
+         core::cmp::min(self.rand() as u16 % constants::DISPLAY_SIZE.1 - 1,
+                        constants::DISPLAY_SIZE.1 - target_height - 1))
     }
 }
 
@@ -188,3 +188,4 @@ impl HwRng {
         };
     }
 }
+
