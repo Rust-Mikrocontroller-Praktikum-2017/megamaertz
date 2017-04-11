@@ -84,8 +84,16 @@ impl SSDisplay {
         5 * Self::get_element_width() + 4 * constants::ELEMENT_GAP
     }
 
+    pub fn get_height() -> u16 {
+        self.get_element_height()   
+    }
+
     pub fn get_element_width() -> u16 {
         2 * constants::SEGMENT_SIZE.1 + constants::SEGMENT_SIZE.0
+    }
+
+    pub fn get_element_height() -> u16 {
+        2 * constants::SEGMENT_SIZE.0 + 3 * constants::SEGMENT_SIZE.1
     }
 }
 
