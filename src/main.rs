@@ -139,7 +139,12 @@ fn main(hw: board::Hardware) -> ! {
     // initialize random number generator and pseudo
     // random number generator
     let mut random_gen = stm32f7::random::Rng::init(rng, rcc).unwrap();
-    let seed = random_gen.poll_and_get().unwrap();
+    let mut result = random_gen.poll_and_get();
+    while result.is_err() {
+        result = random_gen.poll_and_get();
+    }
+    let seed = result.unwrap();
+
     let mut rand = random::MTRng32::new(seed);
 
     //renderer
@@ -189,12 +194,12 @@ fn main(hw: board::Hardware) -> ! {
                                           tick,
                                           lifetime);
             let super_evil_target = Target::new(pos.0,
-                                                   pos.1,
-                                                   constants::TARGET_SIZE_50.0,
-                                                   constants::TARGET_SIZE_50.1,
-                                                   100,
-                                                   tick,
-                                                   2000);
+                                                pos.1,
+                                                constants::TARGET_SIZE_50.0,
+                                                constants::TARGET_SIZE_50.1,
+                                                100,
+                                                tick,
+                                                2000);
             if tick - last_super_trump_render_time >= 8000 + (rand.rand() as usize % 3000) {
                 rend.draw_dump(pos.0, pos.1, constants::TARGET_SIZE_50, SUPER_TRUMP);
                 last_super_trump_render_time = tick;
@@ -210,12 +215,12 @@ fn main(hw: board::Hardware) -> ! {
             let lifetime = game::get_rnd_lifetime(&mut rand);
             let pos: (u16, u16) = game::get_rnd_pos(&mut rand, &hero_targets, &evil_targets);
             let hero_target = Target::new(pos.0,
-                                                   pos.1,
-                                                   constants::TARGET_SIZE_50.0,
-                                                   constants::TARGET_SIZE_50.1,
-                                                   30,
-                                                   tick,
-                                                   lifetime);
+                                          pos.1,
+                                          constants::TARGET_SIZE_50.0,
+                                          constants::TARGET_SIZE_50.1,
+                                          30,
+                                          tick,
+                                          lifetime);
             rend.draw_dump(pos.0, pos.1, constants::TARGET_SIZE_50, MEXICAN);
             hero_targets.push(hero_target);
         }
@@ -260,4 +265,3 @@ fn main(hw: board::Hardware) -> ! {
         }
     }
 }
-
