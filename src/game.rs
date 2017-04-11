@@ -1,9 +1,139 @@
 use core;
 use constants;
-use random;
+use random::{self, Rng};
 use renderer;
 use collections::vec::Vec;
+use seven_segment;
 use stm32f7::board::sai::Sai;
+
+pub struct Game<'a> {
+    pub evil_targets: Vec<Target>,
+    pub hero_targets: Vec<Target>,
+    pub rend: &'a mut renderer::Renderer<'a>,
+    pub score: u16,
+    pub counter: u16,
+    pub rand: random::MTRng32,
+    pub tick: usize,
+    pub last_super_trump_render_time: usize,
+    pub last_ssd_render_time: usize,
+    pub ss_ctr_display: seven_segment::SSDisplay,
+    pub ss_hs_display: seven_segment::SSDisplay,
+}
+
+impl<'a> Game<'a> {
+    pub fn init(&mut self) {
+        self.ss_hs_display.render(0, 0x8000, self.rend);
+    }
+
+    pub fn update_tick(&mut self, tick: usize) {
+        self.tick = tick;
+    }
+
+    pub fn update_counter(&mut self) {
+        if self.tick - self.last_ssd_render_time >= 1000 {
+            self.counter = (self.counter % core::u16::MAX) + 1;
+            self.ss_ctr_display
+                .render(self.counter, 0x8000, self.rend);
+            self.last_ssd_render_time = self.tick;
+        }
+    }
+
+    pub fn draw_missing_targets(&mut self) {
+        // rendering random positioned evil evil_targets (trumps)
+        while self.evil_targets.len() < 5 {
+            let lifetime = get_rnd_lifetime(&mut self.rand);
+            let pos: (u16, u16) =
+                get_rnd_pos(&mut self.rand, &self.hero_targets, &self.evil_targets);
+            let evil_target = Target::new(pos.0,
+                                          pos.1,
+                                          constants::TARGET_SIZE_50.0,
+                                          constants::TARGET_SIZE_50.1,
+                                          50,
+                                          self.tick,
+                                          lifetime);
+            let super_evil_target = Target::new(pos.0,
+                                                pos.1,
+                                                constants::TARGET_SIZE_50.0,
+                                                constants::TARGET_SIZE_50.1,
+                                                100,
+                                                self.tick,
+                                                2000);
+            if self.tick - self.last_super_trump_render_time >=
+               8000 + (self.rand.rand() as usize % 3000) {
+                self.rend
+                    .draw_dump(pos.0, pos.1, constants::TARGET_SIZE_50, ::SUPER_TRUMP);
+                self.last_super_trump_render_time = self.tick;
+                self.evil_targets.push(super_evil_target);
+            } else {
+                self.rend
+                    .draw_dump(pos.0, pos.1, constants::TARGET_SIZE_50, ::TRUMP);
+                self.evil_targets.push(evil_target);
+            }
+        }
+
+        // rendering random positioned hero evil_targets (mexicans)
+        while self.hero_targets.len() < 3 {
+            let lifetime = get_rnd_lifetime(&mut self.rand);
+            let pos: (u16, u16) =
+                get_rnd_pos(&mut self.rand, &self.hero_targets, &self.evil_targets);
+            let hero_target = Target::new(pos.0,
+                                          pos.1,
+                                          constants::TARGET_SIZE_50.0,
+                                          constants::TARGET_SIZE_50.1,
+                                          30,
+                                          self.tick,
+                                          lifetime);
+            self.rend
+                .draw_dump(pos.0, pos.1, constants::TARGET_SIZE_50, ::MEXICAN);
+            self.hero_targets.push(hero_target);
+        }
+    }
+
+    pub fn process_shooting(&mut self, sai_2: &'static Sai, touches: Vec<(u16, u16)>) {
+        if vol_limit_reached(sai_2) {
+            let mut hit_evil_targets = Target::check_for_hit(&mut self.evil_targets, &touches);
+            hit_evil_targets.sort();
+            for hit_index in hit_evil_targets.iter().rev() {
+                let t = self.evil_targets.remove(*hit_index);
+                self.rend.clear(t.x, t.y, (t.width, t.height));
+                self.score += t.bounty;
+                self.ss_hs_display
+                    .render(self.score, constants::GREEN, self.rend);
+            }
+            let mut hit_hero_targets = Target::check_for_hit(&mut self.hero_targets, &touches);
+            hit_hero_targets.sort();
+            for hit_index in hit_hero_targets.iter().rev() {
+                let t = self.hero_targets.remove(*hit_index);
+                self.rend.clear(t.x, t.y, (t.width, t.height));
+                self.score -= if self.score < 30 {
+                    self.score
+                } else {
+                    t.bounty
+                };
+                self.ss_hs_display
+                    .render(self.score, constants::RED, self.rend);
+            }
+        }
+    }
+
+    pub fn purge_old_targets(&mut self) {
+        // dont let targets live longer than lifetime secs
+        for i in (0..self.evil_targets.len()).rev() {
+            if self.tick - self.evil_targets[i].birthday > self.evil_targets[i].lifetime {
+                let t = self.evil_targets.remove(i);
+                self.rend.clear(t.x, t.y, (t.width, t.height));
+            }
+        }
+
+        for i in (0..self.hero_targets.len()).rev() {
+            if self.tick - self.hero_targets[i].birthday > self.hero_targets[i].lifetime {
+                let t = self.hero_targets.remove(i);
+                self.rend.clear(t.x, t.y, (t.width, t.height));
+            }
+        }
+    }
+}
+
 
 
 

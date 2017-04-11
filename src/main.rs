@@ -19,8 +19,6 @@ pub mod game;
 
 use stm32f7::{system_clock, sdram, lcd, i2c, audio, touch, board, embedded};
 use collections::vec::Vec;
-use game::Target;
-use random::Rng;
 
 static TRUMP: &'static [u8] = include_bytes!("../pics/trump_cartoon.dump");
 static SUPER_TRUMP: &'static [u8] = include_bytes!("../pics/mexican_trump_head.dump");
@@ -139,14 +137,14 @@ fn main(hw: board::Hardware) -> ! {
     // initialize random number generator and pseudo
     // random number generator
     let mut random_gen = stm32f7::random::Rng::init(rng, rcc).unwrap();
+
     let mut result = random_gen.poll_and_get();
     while result.is_err() {
         result = random_gen.poll_and_get();
     }
     let seed = result.unwrap();
 
-    let mut rand = random::MTRng32::new(seed);
-
+    let rand = random::MTRng32::new(seed);
     //renderer
     let mut rend = renderer::Renderer::new(&mut lcd);
     rend.draw_dump_bg(0,
@@ -154,114 +152,46 @@ fn main(hw: board::Hardware) -> ! {
                       (constants::DISPLAY_SIZE.0, constants::DISPLAY_SIZE.1),
                       BACKGROUND);
 
-    // coundown
-    let mut ss_display = seven_segment::SSDisplay::new(480 - seven_segment::SSDisplay::get_width(),
-                                                       0);
+    let tick = system_clock::ticks();
 
-    // score
-    let mut score: u16 = 0;
-    let mut ss_hs_display = seven_segment::SSDisplay::new(0, 0);
-    let red: u16 = renderer::RGBColor::from_rgb(255, 0, 0);
-    let green: u16 = renderer::RGBColor::from_rgb(0, 255, 0);
-    ss_hs_display.render(score, 0x8000, &mut rend);
-
-    // array of all evil_targets
-    let mut evil_targets: Vec<game::Target> = Vec::new();
-    let mut hero_targets: Vec<game::Target> = Vec::new();
-
-    let mut last_ssd_render_time = system_clock::ticks();
-    let mut last_super_trump_render_time = system_clock::ticks();
-    let mut counter: u16 = 0;
+    //create and init game
+    let mut game = game::Game {
+            evil_targets: Vec::new(),
+            hero_targets: Vec::new(),
+            rend: &mut rend,
+            score: 0,
+            counter: 0,
+            rand: rand,
+            tick: tick,
+            last_super_trump_render_time: tick,
+            last_ssd_render_time: tick,
+            ss_ctr_display: seven_segment::SSDisplay::new(480 -
+                                                          seven_segment::SSDisplay::get_width(),
+                                                          0),
+            ss_hs_display: seven_segment::SSDisplay::new(0, 0)
+        };
+    game.init();
 
     loop {
         // seven segments display for countdown
         let tick = system_clock::ticks();
-        if tick - last_ssd_render_time >= 1000 {
-            counter = (counter % core::u16::MAX) + 1;
-            ss_display.render(counter, 0x8000, &mut rend);
-            last_ssd_render_time = tick;
-        }
 
-        // rendering random positioned evil evil_targets (trumps)
-        while evil_targets.len() < 5 {
-            let lifetime = game::get_rnd_lifetime(&mut rand);
-            let pos: (u16, u16) = game::get_rnd_pos(&mut rand, &hero_targets, &evil_targets);
-            let evil_target = Target::new(pos.0,
-                                          pos.1,
-                                          constants::TARGET_SIZE_50.0,
-                                          constants::TARGET_SIZE_50.1,
-                                          50,
-                                          tick,
-                                          lifetime);
-            let super_evil_target = Target::new(pos.0,
-                                                pos.1,
-                                                constants::TARGET_SIZE_50.0,
-                                                constants::TARGET_SIZE_50.1,
-                                                100,
-                                                tick,
-                                                2000);
-            if tick - last_super_trump_render_time >= 8000 + (rand.rand() as usize % 3000) {
-                rend.draw_dump(pos.0, pos.1, constants::TARGET_SIZE_50, SUPER_TRUMP);
-                last_super_trump_render_time = tick;
-                evil_targets.push(super_evil_target);
-            } else {
-                rend.draw_dump(pos.0, pos.1, constants::TARGET_SIZE_50, TRUMP);
-                evil_targets.push(evil_target);
-            }
-        }
+        //update tick and counter
+        game.update_tick(tick);
+        game.update_counter();
 
-        // rendering random positioned hero evil_targets (mexicans)
-        while hero_targets.len() < 3 {
-            let lifetime = game::get_rnd_lifetime(&mut rand);
-            let pos: (u16, u16) = game::get_rnd_pos(&mut rand, &hero_targets, &evil_targets);
-            let hero_target = Target::new(pos.0,
-                                          pos.1,
-                                          constants::TARGET_SIZE_50.0,
-                                          constants::TARGET_SIZE_50.1,
-                                          30,
-                                          tick,
-                                          lifetime);
-            rend.draw_dump(pos.0, pos.1, constants::TARGET_SIZE_50, MEXICAN);
-            hero_targets.push(hero_target);
-        }
+        //draw missing targets
+        game.draw_missing_targets();
 
         let mut touches: Vec<(u16, u16)> = Vec::new();
         for touch in &touch::touches(&mut i2c_3).unwrap() {
             touches.push((touch.x, touch.y));
         }
 
-        if game::vol_limit_reached(sai_2) {
-            let mut hit_evil_targets = Target::check_for_hit(&mut evil_targets, &touches);
-            hit_evil_targets.sort();
-            for hit_index in hit_evil_targets.iter().rev() {
-                let t = evil_targets.remove(*hit_index);
-                rend.clear(t.x, t.y, (t.width, t.height));
-                score += t.bounty;
-                ss_hs_display.render(score, green, &mut rend);
-            }
-            let mut hit_hero_targets = Target::check_for_hit(&mut hero_targets, &touches);
-            hit_hero_targets.sort();
-            for hit_index in hit_hero_targets.iter().rev() {
-                let t = hero_targets.remove(*hit_index);
-                rend.clear(t.x, t.y, (t.width, t.height));
-                score -= if score < 30 { score } else { t.bounty };
-                ss_hs_display.render(score, red, &mut rend);
-            }
-        }
+        // process shooting
+        game.process_shooting(sai_2, touches);
 
-        // dont let targets live longer than lifetime secs
-        for i in (0..evil_targets.len()).rev() {
-            if tick - evil_targets[i].birthday > evil_targets[i].lifetime {
-                let t = evil_targets.remove(i);
-                rend.clear(t.x, t.y, (t.width, t.height));
-            }
-        }
-
-        for i in (0..hero_targets.len()).rev() {
-            if tick - hero_targets[i].birthday > hero_targets[i].lifetime {
-                let t = hero_targets.remove(i);
-                rend.clear(t.x, t.y, (t.width, t.height));
-            }
-        }
+        // purge old
+        game.purge_old_targets();
     }
 }
