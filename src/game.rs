@@ -90,7 +90,7 @@ impl<'a> Game<'a> {
                                           pos.1,
                                           constants::TARGET_SIZE_50.0,
                                           constants::TARGET_SIZE_50.1,
-                                          30,
+                                          70,
                                           self.tick,
                                           lifetime);
             self.rend
