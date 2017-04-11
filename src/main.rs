@@ -25,6 +25,7 @@ static TRUMP: &'static [u8] = include_bytes!("../pics/trump_cartoon.dump");
 static SUPER_TRUMP: &'static [u8] = include_bytes!("../pics/mexican_trump_head.dump");
 static MEXICAN: &'static [u8] = include_bytes!("../pics/mexican_cartoon.dump");
 static BACKGROUND: &'static [u8] = include_bytes!("../pics/desert.dump");
+static GAMEOVER: &'static [u8] = include_bytes!("../pics/gameover.dump");
 
 #[no_mangle]
 pub unsafe extern "C" fn reset() -> ! {
@@ -189,6 +190,7 @@ fn main(hw: board::Hardware) -> ! {
             }
         } else {
             // GAME OVER! //TODO: better
+            // renderer::Renderer::draw_dump(0, 90, size, ::GAMEOVER);
             game.reset_game();
             stm32f7::system_clock::wait(5000);
             game.start();
