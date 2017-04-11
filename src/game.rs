@@ -155,6 +155,13 @@ impl<'a> Game<'a> {
         self.score = 0;
     }
 
+    pub fn game_over(&mut self) {
+        let score = self.score;
+        self.reset_game();
+        self.rend.draw_dump(0, 90, (480, 64), ::GAMEOVER);
+        //draw score
+    }
+
 
     fn vol_limit_reached(sai_2: &'static Sai) -> bool {
         while !sai_2.bsr.read().freq() {} // fifo_request_flag
@@ -284,3 +291,4 @@ impl Target {
         indices
     }
 }
+

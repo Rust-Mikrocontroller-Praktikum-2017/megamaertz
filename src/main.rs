@@ -187,8 +187,8 @@ fn main(hw: board::Hardware) -> ! {
                 }
             } else {
                 // GAME OVER!
+                game.game_over();
                 game_running = false;
-                game.reset_game();
             }
         } else {
             if touches.len() > 0 {
