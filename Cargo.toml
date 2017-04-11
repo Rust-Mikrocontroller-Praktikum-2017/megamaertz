@@ -1,7 +1,7 @@
 [package]
 name = "megamaertz"
 version = "0.1.0"
-authors = ["Jan Keim <jan.keim@protonmail.com>", "Nico Muerdter <nicomuerdter@gmail.com>", "Vanessa Steurer"]
+authors = ["Jan Keim <jan.keim@protonmail.com>", "Nico Muerdter <nicomuerdter@gmail.com>", "Vanessa Steurer <vanessa_steurer@web.de"]
 
 [dependencies]
 clippy = "0.0.121"

@@ -57,6 +57,7 @@ pub unsafe extern "C" fn reset() -> ! {
 
 fn main(hw: board::Hardware) -> ! {
     let board::Hardware { rcc,
+                          rng,
                           pwr,
                           flash,
                           fmc,
@@ -109,9 +110,9 @@ fn main(hw: board::Hardware) -> ! {
     // configure led pin as output pin
     let led_pin = (gpio::Port::PortI, gpio::Pin::Pin1);
     let mut led = gpio.to_output(led_pin,
-                                 gpio::OutputType::PushPull,
-                                 gpio::OutputSpeed::Low,
-                                 gpio::Resistor::NoPull)
+                   gpio::OutputType::PushPull,
+                   gpio::OutputSpeed::Low,
+                   gpio::Resistor::NoPull)
         .expect("led pin already in use");
 
     // turn led on
@@ -135,8 +136,11 @@ fn main(hw: board::Hardware) -> ! {
     audio::init_sai_2(sai_2, rcc);
     assert!(audio::init_wm8994(&mut i2c_3).is_ok());
 
-    // initialize random number generator
-    let mut rand = random::MTRng32::new();
+    // initialize random number generator and pseudo
+    // random number generator
+    let mut random_gen = stm32f7::random::Rng::init(rng, rcc).unwrap();
+    let seed = random_gen.poll_and_get().unwrap();
+    let mut rand = random::MTRng32::new(seed);
 
     //renderer
     let mut rend = renderer::Renderer::new(&mut lcd);
