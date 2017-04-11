@@ -103,19 +103,14 @@ fn main(hw: board::Hardware) -> ! {
         r.set_gpioien(true);
         r.set_gpiojen(true);
         r.set_gpioken(true);
+
+       
     });
 
-
-    // configure led pin as output pin
-    let led_pin = (gpio::Port::PortI, gpio::Pin::Pin1);
-    let mut led = gpio.to_output(led_pin,
-                                 gpio::OutputType::PushPull,
-                                 gpio::OutputSpeed::Low,
-                                 gpio::Resistor::NoPull)
-        .expect("led pin already in use");
-
-    // turn led on
-    led.set(true);
+    // button controller for reset button
+    let button_pin = (gpio::Port::PortI, gpio::Pin::Pin11);
+    let button =
+    gpio.to_input(button_pin, gpio::Resistor::NoPull).expect("button pin already in use");
 
     // init sdram (needed for display buffer)
     sdram::init(rcc, fmc, &mut gpio);
@@ -125,7 +120,7 @@ fn main(hw: board::Hardware) -> ! {
     lcd.clear_screen();
     lcd.set_background_color(lcd::Color::rgb(255, 193, 37));
 
-    //i2c
+    // i2c
     i2c::init_pins_and_clocks(rcc, &mut gpio);
     let mut i2c_3 = i2c::init(i2c_3);
     touch::check_family_id(&mut i2c_3).unwrap();
@@ -184,13 +179,20 @@ fn main(hw: board::Hardware) -> ! {
 
             // purge old
             game.purge_old_targets();
+
+            // reset game by click
+            let button_pressed = button.get();
+            if button_pressed {
+                game.reset_game();
+                stm32f7::system_clock::wait(3000);
+                game.start();
+            }
         } else {
             // GAME OVER! //TODO: better
             game.reset_game();
             stm32f7::system_clock::wait(5000);
             game.start();
         }
-
-
     }
+
 }
