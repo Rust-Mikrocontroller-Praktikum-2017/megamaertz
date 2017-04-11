@@ -159,6 +159,14 @@ impl<'a> Game<'a> {
         let score = self.score;
         self.reset_game();
         self.rend.draw_dump(0, 90, (480, 64), ::GAMEOVER);
+        let ss_end_display =
+            SSDisplay::new(((constants::DISPLAY_SIZE.0 -
+                            SSDisplay::calculate_width(constants::ELEMENT_WIDTH_BIG,
+                                                       constants::ELEMENT_GAP_BIG)) / 2,
+                            160),
+                           constants::ELEMENT_WIDTH_BIG,
+                           constants::ELEMENT_GAP_BIG);
+        ss_end_display.render(score, constants::BLACK, self.rend);
         //draw score
     }
 
@@ -299,4 +307,3 @@ impl Target {
         indices
     }
 }
-
