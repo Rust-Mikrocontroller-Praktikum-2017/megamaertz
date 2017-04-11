@@ -109,9 +109,9 @@ fn main(hw: board::Hardware) -> ! {
     // configure led pin as output pin
     let led_pin = (gpio::Port::PortI, gpio::Pin::Pin1);
     let mut led = gpio.to_output(led_pin,
-                   gpio::OutputType::PushPull,
-                   gpio::OutputSpeed::Low,
-                   gpio::Resistor::NoPull)
+                                 gpio::OutputType::PushPull,
+                                 gpio::OutputSpeed::Low,
+                                 gpio::Resistor::NoPull)
         .expect("led pin already in use");
 
     // turn led on
@@ -170,11 +170,7 @@ fn main(hw: board::Hardware) -> ! {
     game.init();
 
     loop {
-        // seven segments display for countdown
-        let tick = system_clock::ticks();
-
         //update tick and counter
-        game.update_tick(tick);
         game.update_countdown();
 
         //draw missing targets
