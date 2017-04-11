@@ -111,8 +111,8 @@ fn main(hw: board::Hardware) -> ! {
 
     // button controller for reset button
     let button_pin = (gpio::Port::PortI, gpio::Pin::Pin11);
-    let button =
-        gpio.to_input(button_pin, gpio::Resistor::NoPull).expect("button pin already in use");
+    let button = gpio.to_input(button_pin, gpio::Resistor::NoPull)
+        .expect("button pin already in use");
 
     // init sdram (needed for display buffer)
     sdram::init(rcc, fmc, &mut gpio);
@@ -196,7 +196,7 @@ fn main(hw: board::Hardware) -> ! {
                 if button_pressed {
                     game.reset_game();
                     stm32f7::system_clock::wait(3000);
-                    game.start((0,0)); //TODO
+                    game.start((0, 0)); //TODO
                 }
             } else {
                 // GAME OVER!

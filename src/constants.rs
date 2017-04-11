@@ -22,3 +22,6 @@ pub const BLACK: u16 = 0x8000;
 pub const GAME_TIME: u16 = 30;
 pub const MAX_EVIL_TARGETS: usize = 4;
 pub const MAX_HERO_TARGETS: usize = 7;
+pub const HERO_POINTS: u16 = 35;
+pub const EVIL_POINTS: u16 = 25;
+pub const SUPER_EVIL_POINTS: u16 = 50;

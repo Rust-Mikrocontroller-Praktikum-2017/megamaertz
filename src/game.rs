@@ -87,14 +87,14 @@ impl<'a> Game<'a> {
                                           pos.1,
                                           constants::TARGET_SIZE_50.0,
                                           constants::TARGET_SIZE_50.1,
-                                          50,
+                                          constants::EVIL_POINTS,
                                           self.tick,
                                           lifetime);
             let super_evil_target = Target::new(pos.0,
                                                 pos.1,
                                                 constants::TARGET_SIZE_50.0,
                                                 constants::TARGET_SIZE_50.1,
-                                                100,
+                                                constants::SUPER_EVIL_POINTS,
                                                 self.tick,
                                                 2000);
             if self.tick - self.last_super_target_render_time >=
@@ -125,7 +125,7 @@ impl<'a> Game<'a> {
                                           pos.1,
                                           constants::TARGET_SIZE_50.0,
                                           constants::TARGET_SIZE_50.1,
-                                          70,
+                                          constants::HERO_POINTS,
                                           self.tick,
                                           lifetime);
             self.rend
@@ -138,29 +138,28 @@ impl<'a> Game<'a> {
     }
 
     pub fn process_shooting(&mut self, sai_2: &'static Sai, touches: Vec<(u16, u16)>) {
-        if Self::vol_limit_reached(sai_2) {
-            let mut hit_evil_targets = Target::check_for_hit(&mut self.evil_targets, &touches);
-            hit_evil_targets.sort();
-            for hit_index in hit_evil_targets.iter().rev() {
-                let t = self.evil_targets.remove(*hit_index);
-                self.rend.clear(t.x, t.y, (t.width, t.height));
-                self.score += t.bounty;
-                self.ss_hs_display
-                    .render(self.score, constants::GREEN, self.rend);
-            }
-            let mut hit_hero_targets = Target::check_for_hit(&mut self.hero_targets, &touches);
-            hit_hero_targets.sort();
-            for hit_index in hit_hero_targets.iter().rev() {
-                let t = self.hero_targets.remove(*hit_index);
-                self.rend.clear(t.x, t.y, (t.width, t.height));
-                self.score -= if self.score < t.bounty {
-                    self.score
-                } else {
-                    t.bounty
-                };
-                self.ss_hs_display
-                    .render(self.score, constants::RED, self.rend);
-            }
+        let mult = if Self::vol_limit_reached(sai_2) { 2 } else { 1 };
+        let mut hit_evil_targets = Target::check_for_hit(&mut self.evil_targets, &touches);
+        hit_evil_targets.sort();
+        for hit_index in hit_evil_targets.iter().rev() {
+            let t = self.evil_targets.remove(*hit_index);
+            self.rend.clear(t.x, t.y, (t.width, t.height));
+            self.score += t.bounty * mult;
+            self.ss_hs_display
+                .render(self.score, constants::GREEN, self.rend);
+        }
+        let mut hit_hero_targets = Target::check_for_hit(&mut self.hero_targets, &touches);
+        hit_hero_targets.sort();
+        for hit_index in hit_hero_targets.iter().rev() {
+            let t = self.hero_targets.remove(*hit_index);
+            self.rend.clear(t.x, t.y, (t.width, t.height));
+            self.score -= if self.score < t.bounty {
+                self.score
+            } else {
+                t.bounty * mult
+            };
+            self.ss_hs_display
+                .render(self.score, constants::RED, self.rend);
         }
     }
 
@@ -349,4 +348,3 @@ impl Target {
         indices
     }
 }
-
