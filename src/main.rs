@@ -105,7 +105,7 @@ fn main(hw: board::Hardware) -> ! {
         r.set_gpiojen(true);
         r.set_gpioken(true);
 
-       
+
     });
 
     // button controller for reset button
@@ -164,36 +164,37 @@ fn main(hw: board::Hardware) -> ! {
         ss_hs_display: SSDisplay::new(0, 0),
     };
 
-    game.start();
+    // game.start();
+    let mut game_running = false;
     loop {
-        if 0 < game.update_countdown() {
-            //draw missing targets
-            game.draw_missing_targets();
+        let mut touches: Vec<(u16, u16)> = Vec::new();
+        for touch in &touch::touches(&mut i2c_3).unwrap() {
+            touches.push((touch.x, touch.y));
+        }
 
-            let mut touches: Vec<(u16, u16)> = Vec::new();
-            for touch in &touch::touches(&mut i2c_3).unwrap() {
-                touches.push((touch.x, touch.y));
-            }
+        if game_running {
+            if 0 < game.update_countdown() {
+                game.draw_missing_targets();
+                game.process_shooting(sai_2, touches);
+                game.purge_old_targets();
 
-            // process shooting
-            game.process_shooting(sai_2, touches);
-
-            // purge old
-            game.purge_old_targets();
-
-            // reset game by click
-            let button_pressed = button.get();
-            if button_pressed {
-                game.reset_game();
-                stm32f7::system_clock::wait(3000);
-                game.start();
+                // reset game by click
+                let button_pressed = button.get();
+                if button_pressed {
+                    game.reset_game();
+                    stm32f7::system_clock::wait(3000);
+                    game.start();
+                }
+            } else {
+                // GAME OVER!
+                game.game_over();
+                game_running = false;
             }
         } else {
-            // GAME OVER! //TODO: better
-            // renderer::Renderer::draw_dump(0, 90, size, ::GAMEOVER);
-            game.reset_game();
-            stm32f7::system_clock::wait(5000);
-            game.start();
+            if touches.len() > 0 {
+                game.start();
+                game_running = true;
+            }
         }
     }
 
