@@ -192,7 +192,6 @@ fn main(hw: board::Hardware) -> ! {
                                                    tick,
                                                    2000);
             if tick - last_super_trump_render_time >= 8000 + (rand.rand() as usize % 3000) {
-                //TODO rand hier
                 rend.draw_dump(pos.0, pos.1, constants::TARGET_SIZE_50, SUPER_TRUMP);
                 last_super_trump_render_time = tick;
                 evil_targets.push(super_evil_target);
@@ -236,8 +235,7 @@ fn main(hw: board::Hardware) -> ! {
             for hit_index in hit_hero_targets.iter().rev() {
                 let t = hero_targets.remove(*hit_index);
                 rend.clear(t.x, t.y, (t.width, t.height));
-                score -= if score < 30 { 0 } else { t.bounty };
-                //TODO male auf 0
+                score -= if score < 30 { score } else { t.bounty };
                 ss_hs_display.render(score, red, &mut rend);
             }
         }
