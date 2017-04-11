@@ -128,7 +128,7 @@ impl<'a> Game<'a> {
             for hit_index in hit_hero_targets.iter().rev() {
                 let t = self.hero_targets.remove(*hit_index);
                 self.rend.clear(t.x, t.y, (t.width, t.height));
-                self.score -= if self.score < 30 {
+                self.score -= if self.score < t.bounty {
                     self.score
                 } else {
                     t.bounty
