@@ -21,9 +21,10 @@ use stm32f7::{system_clock, sdram, lcd, i2c, audio, touch, board, embedded};
 use stm32f7::board::sai::Sai;
 use collections::vec::Vec;
 use shooter::Target;
+use random::Rng;
 
 static TRUMP: &'static [u8] = include_bytes!("../pics/trump_cartoon.dump");
-// static SUPER_TRUMP: &'static [u8] = include_bytes!("../pics/mexican_trump_head.dump");
+static SUPER_TRUMP: &'static [u8] = include_bytes!("../pics/mexican_trump_head.dump");
 static MEXICAN: &'static [u8] = include_bytes!("../pics/mexican_cartoon.dump");
 static BACKGROUND: &'static [u8] = include_bytes!("../pics/background.dump");
 
@@ -160,6 +161,7 @@ fn main(hw: board::Hardware) -> ! {
     let mut hero_targets: Vec<shooter::Target> = Vec::new();
 
     let mut last_ssd_render_time = system_clock::ticks();
+    let mut last_super_trump_render_time = system_clock::ticks();
     let mut counter: u16 = 0;
 
     loop {
@@ -182,8 +184,22 @@ fn main(hw: board::Hardware) -> ! {
                                           50,
                                           tick,
                                           lifetime);
-            rend.draw_dump(pos.0, pos.1, constants::TARGET_SIZE_50, TRUMP);
-            evil_targets.push(evil_target);
+            let super_evil_target = shooter::Target::new(pos.0,
+                                                   pos.1,
+                                                   constants::TARGET_SIZE_50.0,
+                                                   constants::TARGET_SIZE_50.1,
+                                                   100,
+                                                   tick,
+                                                   2000);
+            if tick - last_super_trump_render_time >= 8000 + (rand.rand() as usize % 3000) {
+                //TODO rand hier
+                rend.draw_dump(pos.0, pos.1, constants::TARGET_SIZE_50, SUPER_TRUMP);
+                last_super_trump_render_time = tick;
+                evil_targets.push(super_evil_target);
+            } else {
+                rend.draw_dump(pos.0, pos.1, constants::TARGET_SIZE_50, TRUMP);
+                evil_targets.push(evil_target);
+            }
         }
 
         // rendering random positioned hero evil_targets (mexicans)
@@ -221,6 +237,7 @@ fn main(hw: board::Hardware) -> ! {
                 let t = hero_targets.remove(*hit_index);
                 rend.clear(t.x, t.y, (t.width, t.height));
                 score -= if score < 30 { 0 } else { t.bounty };
+                //TODO male auf 0
                 ss_hs_display.render(score, red, &mut rend);
             }
         }
