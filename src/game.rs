@@ -3,7 +3,7 @@ use constants;
 use random::{self, Rng};
 use renderer;
 use collections::vec::Vec;
-use seven_segment;
+use seven_segment::SSDisplay;
 use stm32f7::board::sai::Sai;
 
 pub struct Game<'a> {
@@ -11,13 +11,13 @@ pub struct Game<'a> {
     pub hero_targets: Vec<Target>,
     pub rend: &'a mut renderer::Renderer<'a>,
     pub score: u16,
-    pub counter: u16,
+    pub countdown: u16,
     pub rand: random::MTRng32,
     pub tick: usize,
     pub last_super_trump_render_time: usize,
     pub last_ssd_render_time: usize,
-    pub ss_ctr_display: seven_segment::SSDisplay,
-    pub ss_hs_display: seven_segment::SSDisplay,
+    pub ss_ctr_display: SSDisplay,
+    pub ss_hs_display: SSDisplay,
 }
 
 impl<'a> Game<'a> {
@@ -29,11 +29,11 @@ impl<'a> Game<'a> {
         self.tick = tick;
     }
 
-    pub fn update_counter(&mut self) {
+    pub fn update_countdown(&mut self) {
         if self.tick - self.last_ssd_render_time >= 1000 {
-            self.counter = (self.counter % core::u16::MAX) + 1;
+            self.countdown -= if self.countdown > 0 { 0 } else { 1 };
             self.ss_ctr_display
-                .render(self.counter, 0x8000, self.rend);
+                .render(self.countdown, 0x8000, self.rend);
             self.last_ssd_render_time = self.tick;
         }
     }
@@ -133,9 +133,6 @@ impl<'a> Game<'a> {
         }
     }
 }
-
-
-
 
 pub fn vol_limit_reached(sai_2: &'static Sai) -> bool {
     while !sai_2.bsr.read().freq() {} // fifo_request_flag
@@ -255,4 +252,3 @@ impl Target {
         indices
     }
 }
-

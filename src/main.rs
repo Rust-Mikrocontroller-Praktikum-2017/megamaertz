@@ -19,6 +19,7 @@ pub mod game;
 
 use stm32f7::{system_clock, sdram, lcd, i2c, audio, touch, board, embedded};
 use collections::vec::Vec;
+use seven_segment::SSDisplay;
 
 static TRUMP: &'static [u8] = include_bytes!("../pics/trump_cartoon.dump");
 static SUPER_TRUMP: &'static [u8] = include_bytes!("../pics/mexican_trump_head.dump");
@@ -156,20 +157,18 @@ fn main(hw: board::Hardware) -> ! {
 
     //create and init game
     let mut game = game::Game {
-            evil_targets: Vec::new(),
-            hero_targets: Vec::new(),
-            rend: &mut rend,
-            score: 0,
-            counter: 0,
-            rand: rand,
-            tick: tick,
-            last_super_trump_render_time: tick,
-            last_ssd_render_time: tick,
-            ss_ctr_display: seven_segment::SSDisplay::new(480 -
-                                                          seven_segment::SSDisplay::get_width(),
-                                                          0),
-            ss_hs_display: seven_segment::SSDisplay::new(0, 0)
-        };
+        evil_targets: Vec::new(),
+        hero_targets: Vec::new(),
+        rend: &mut rend,
+        score: 0,
+        countdown: 120,
+        rand: rand,
+        tick: tick,
+        last_super_trump_render_time: tick,
+        last_ssd_render_time: tick,
+        ss_ctr_display: SSDisplay::new(constants::DISPLAY_SIZE.0 - SSDisplay::get_width(), 0),
+        ss_hs_display: SSDisplay::new(0, 0),
+    };
     game.init();
 
     loop {
@@ -178,7 +177,7 @@ fn main(hw: board::Hardware) -> ! {
 
         //update tick and counter
         game.update_tick(tick);
-        game.update_counter();
+        game.update_countdown();
 
         //draw missing targets
         game.draw_missing_targets();
