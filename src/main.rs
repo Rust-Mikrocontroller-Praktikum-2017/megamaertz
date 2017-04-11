@@ -14,13 +14,12 @@ extern crate bit_field;
 pub mod renderer;
 pub mod seven_segment;
 pub mod random;
-pub mod shooter;
 pub mod constants;
 pub mod game;
 
 use stm32f7::{system_clock, sdram, lcd, i2c, audio, touch, board, embedded};
 use collections::vec::Vec;
-use shooter::Target;
+use game::Target;
 use random::Rng;
 
 static TRUMP: &'static [u8] = include_bytes!("../pics/trump_cartoon.dump");
@@ -161,8 +160,8 @@ fn main(hw: board::Hardware) -> ! {
     ss_hs_display.render(score, 0x8000, &mut rend);
 
     // array of all evil_targets
-    let mut evil_targets: Vec<shooter::Target> = Vec::new();
-    let mut hero_targets: Vec<shooter::Target> = Vec::new();
+    let mut evil_targets: Vec<game::Target> = Vec::new();
+    let mut hero_targets: Vec<game::Target> = Vec::new();
 
     let mut last_ssd_render_time = system_clock::ticks();
     let mut last_super_trump_render_time = system_clock::ticks();
@@ -188,7 +187,7 @@ fn main(hw: board::Hardware) -> ! {
                                           50,
                                           tick,
                                           lifetime);
-            let super_evil_target = shooter::Target::new(pos.0,
+            let super_evil_target = Target::new(pos.0,
                                                    pos.1,
                                                    constants::TARGET_SIZE_50.0,
                                                    constants::TARGET_SIZE_50.1,
@@ -209,7 +208,7 @@ fn main(hw: board::Hardware) -> ! {
         while hero_targets.len() < 3 {
             let lifetime = game::get_rnd_lifetime(&mut rand);
             let pos: (u16, u16) = game::get_rnd_pos(&mut rand, &hero_targets, &evil_targets);
-            let hero_target = shooter::Target::new(pos.0,
+            let hero_target = Target::new(pos.0,
                                                    pos.1,
                                                    constants::TARGET_SIZE_50.0,
                                                    constants::TARGET_SIZE_50.1,
