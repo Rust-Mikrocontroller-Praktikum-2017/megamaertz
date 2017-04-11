@@ -1,4 +1,3 @@
-use core;
 use constants;
 use random::{self, Rng};
 use renderer;
@@ -52,7 +51,7 @@ impl<'a> Game<'a> {
     pub fn draw_missing_targets(&mut self) {
         // rendering random positioned evil evil_targets (trumps)
         while self.evil_targets.len() < 5 {
-            let lifetime = Self::get_rnd_lifetime(&mut self.rand);
+            let lifetime = Self::get_rnd_lifetime(&mut self.rand, 3000, 5000);
             let pos: (u16, u16) =
                 Self::get_rnd_pos(&mut self.rand, &self.hero_targets, &self.evil_targets);
             let evil_target = Target::new(pos.0,
@@ -84,7 +83,7 @@ impl<'a> Game<'a> {
 
         // rendering random positioned hero evil_targets (mexicans)
         while self.hero_targets.len() < 3 {
-            let lifetime = Self::get_rnd_lifetime(&mut self.rand);
+            let lifetime = Self::get_rnd_lifetime(&mut self.rand, 3000, 5000);
             let pos: (u16, u16) =
                 Self::get_rnd_pos(&mut self.rand, &self.hero_targets, &self.evil_targets);
             let hero_target = Target::new(pos.0,
@@ -128,18 +127,15 @@ impl<'a> Game<'a> {
     }
 
     pub fn purge_old_targets(&mut self) {
-        // dont let targets live longer than lifetime secs
-        for i in (0..self.evil_targets.len()).rev() {
-            if self.tick - self.evil_targets[i].birthday > self.evil_targets[i].lifetime {
-                let t = self.evil_targets.remove(i);
-                self.rend.clear(t.x, t.y, (t.width, t.height));
-            }
-        }
+        let mut targets = [&mut self.evil_targets, &mut self.hero_targets];
 
-        for i in (0..self.hero_targets.len()).rev() {
-            if self.tick - self.hero_targets[i].birthday > self.hero_targets[i].lifetime {
-                let t = self.hero_targets.remove(i);
-                self.rend.clear(t.x, t.y, (t.width, t.height));
+        // dont let targets live longer than lifetime secs
+        for target_vec in targets.iter_mut() {
+            for i in (0..target_vec.len()).rev() {
+                if self.tick - target_vec[i].birthday > target_vec[i].lifetime {
+                    let t = target_vec.remove(i);
+                    self.rend.clear(t.x, t.y, (t.width, t.height));
+                }
             }
         }
     }
@@ -177,10 +173,9 @@ impl<'a> Game<'a> {
         mic_data > blaze_it
     }
 
-    fn get_rnd_lifetime(rnd: &mut random::Rng) -> usize {
-        let mut num = rnd.rand() as usize;
-        num &= 0x3FFF;
-        core::cmp::max(num, 5000)
+    fn get_rnd_lifetime(rnd: &mut random::Rng, min: usize, max: usize) -> usize {
+        let range = max - min;
+        min + ((rnd.rand() as usize) % range)
     }
 
     fn get_rnd_pos(rand: &mut random::Rng,
@@ -289,4 +284,3 @@ impl Target {
         indices
     }
 }
-
