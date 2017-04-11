@@ -138,14 +138,12 @@ fn main(hw: board::Hardware) -> ! {
     // initialize random number generator and pseudo
     // random number generator
     let mut random_gen = stm32f7::random::Rng::init(rng, rcc).unwrap();
-
-    let mut result = random_gen.poll_and_get();
-    while result.is_err() {
-        result = random_gen.poll_and_get();
+    let mut seed = random_gen.poll_and_get();
+    while seed.is_err() {
+        seed = random_gen.poll_and_get();
     }
-    let seed = result.unwrap();
+    let rand = random::MTRng32::new(seed.unwrap());
 
-    let rand = random::MTRng32::new(seed);
     //renderer
     let mut rend = renderer::Renderer::new(&mut lcd);
     rend.draw_dump_bg(0,

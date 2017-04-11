@@ -85,7 +85,7 @@ impl SSDisplay {
     }
 
     pub fn get_height() -> u16 {
-        self.get_element_height()   
+        Self::get_element_height()
     }
 
     pub fn get_element_width() -> u16 {
