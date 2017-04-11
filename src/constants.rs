@@ -11,3 +11,8 @@ pub const ELEMENT_GAP: u16 = 3;
 // colors
 pub const RED: u16 = 0xFC00;
 pub const GREEN: u16 = 0x83E0;
+pub const BLACK: u16 = 0x8000;
+
+// game constants
+pub const GAME_TIME: u16 = 30;
+

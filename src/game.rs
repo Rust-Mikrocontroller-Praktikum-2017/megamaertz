@@ -22,22 +22,31 @@ pub struct Game<'a> {
 }
 
 impl<'a> Game<'a> {
-    pub fn init(&mut self) {
-        self.ss_hs_display.render(0, 0x8000, self.rend);
-    }
-
-    pub fn update_tick(&mut self, tick: usize) {
+    pub fn start(&mut self) {
+        self.ss_ctr_display
+            .render(constants::GAME_TIME, constants::BLACK, self.rend);
+        self.ss_hs_display.render(0, constants::BLACK, self.rend);
+        let tick = system_clock::ticks();
+        self.last_ssd_render_time = tick;
+        self.last_super_trump_render_time = tick;
         self.tick = tick;
+        self.countdown = constants::GAME_TIME;
     }
 
-    pub fn update_countdown(&mut self) {
-        self.update_tick(system_clock::ticks());
+    pub fn update_countdown(&mut self) -> u16 {
+        self.tick = system_clock::ticks();
         if self.tick - self.last_ssd_render_time >= 1000 {
             self.countdown -= if self.countdown > 0 { 1 } else { 0 };
+            let color = if self.countdown <= 5 {
+                constants::RED
+            } else {
+                constants::BLACK
+            };
             self.ss_ctr_display
-                .render(self.countdown, 0x8000, self.rend);
+                .render(self.countdown, color, self.rend);
             self.last_ssd_render_time = self.tick;
         }
+        self.countdown
     }
 
     pub fn draw_missing_targets(&mut self) {
@@ -134,6 +143,22 @@ impl<'a> Game<'a> {
             }
         }
     }
+
+    pub fn reset_game(&mut self) {
+        for t in &self.evil_targets {
+            self.rend.clear(t.x, t.y, (t.width, t.height));
+        }
+
+        for t in &self.hero_targets {
+            self.rend.clear(t.x, t.y, (t.width, t.height));
+        }
+
+        self.evil_targets = Vec::new();
+        self.hero_targets = Vec::new();
+        self.countdown = 0;
+        self.score = 0;
+    }
+
 
     fn vol_limit_reached(sai_2: &'static Sai) -> bool {
         while !sai_2.bsr.read().freq() {} // fifo_request_flag

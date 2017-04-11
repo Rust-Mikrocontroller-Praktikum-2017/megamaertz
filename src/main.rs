@@ -159,7 +159,7 @@ fn main(hw: board::Hardware) -> ! {
         hero_targets: Vec::new(),
         rend: &mut rend,
         score: 0,
-        countdown: 120,
+        countdown: constants::GAME_TIME,
         rand: rand,
         tick: tick,
         last_super_trump_render_time: tick,
@@ -167,24 +167,30 @@ fn main(hw: board::Hardware) -> ! {
         ss_ctr_display: SSDisplay::new(constants::DISPLAY_SIZE.0 - SSDisplay::get_width(), 0),
         ss_hs_display: SSDisplay::new(0, 0),
     };
-    game.init();
 
+    game.start();
     loop {
-        //update tick and counter
-        game.update_countdown();
+        if 0 < game.update_countdown() {
+            //draw missing targets
+            game.draw_missing_targets();
 
-        //draw missing targets
-        game.draw_missing_targets();
+            let mut touches: Vec<(u16, u16)> = Vec::new();
+            for touch in &touch::touches(&mut i2c_3).unwrap() {
+                touches.push((touch.x, touch.y));
+            }
 
-        let mut touches: Vec<(u16, u16)> = Vec::new();
-        for touch in &touch::touches(&mut i2c_3).unwrap() {
-            touches.push((touch.x, touch.y));
+            // process shooting
+            game.process_shooting(sai_2, touches);
+
+            // purge old
+            game.purge_old_targets();
+        } else {
+            // GAME OVER! //TODO: better
+            game.reset_game();
+            stm32f7::system_clock::wait(5000);
+            game.start();
         }
 
-        // process shooting
-        game.process_shooting(sai_2, touches);
 
-        // purge old
-        game.purge_old_targets();
     }
 }
