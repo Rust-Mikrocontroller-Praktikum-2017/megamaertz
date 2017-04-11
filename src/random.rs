@@ -40,6 +40,22 @@ impl MTRng32 {
         rng
     }
 
+    pub fn rand(&mut self) -> u32 {
+        if self.index >= N {
+            self.generate_words();
+        }
+
+        let mut y = self.state[self.index];
+        self.index += 1;
+
+        y ^= y >> 11;
+        y ^= (y << 7) & MAGIC_VALUE2;
+        y ^= (y << 15) & MAGIC_VALUE3;
+        y ^= y >> 18;
+
+        y
+    }
+
     fn reset(&mut self, seed: u32) {
         self.state[0] = seed;
         for index in 1..N {
@@ -71,23 +87,5 @@ impl MTRng32 {
         }
 
         self.index = 0;
-    }
-}
-
-impl Rng for MTRng32 {
-    fn rand(&mut self) -> u32 {
-        if self.index >= N {
-            self.generate_words();
-        }
-
-        let mut y = self.state[self.index];
-        self.index += 1;
-
-        y ^= y >> 11;
-        y ^= (y << 7) & MAGIC_VALUE2;
-        y ^= (y << 15) & MAGIC_VALUE3;
-        y ^= y >> 18;
-
-        y
     }
 }

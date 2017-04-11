@@ -1,5 +1,5 @@
 use constants;
-use random::{self, Rng};
+use random;
 use renderer;
 use collections::vec::Vec;
 use seven_segment::SSDisplay;
@@ -188,12 +188,12 @@ impl<'a> Game<'a> {
         mic_data > blaze_it
     }
 
-    fn get_rnd_lifetime(rnd: &mut random::Rng, min: usize, max: usize) -> usize {
+    fn get_rnd_lifetime(rnd: &mut random::MTRng32, min: usize, max: usize) -> usize {
         let range = max - min;
         min + ((rnd.rand() as usize) % range)
     }
 
-    fn get_rnd_pos(rand: &mut random::Rng,
+    fn get_rnd_pos(rand: &mut random::MTRng32,
                    existing_hero: &[Target],
                    existing_evil: &[Target])
                    -> (u16, u16) {

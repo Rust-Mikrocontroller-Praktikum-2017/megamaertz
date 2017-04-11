@@ -162,7 +162,7 @@ impl<'a> Renderer<'a> {
         }
     }
 
-    pub fn get_random_pos(rng: &mut random::Rng, width: u16, height: u16) -> (u16, u16) {
+    pub fn get_random_pos(rng: &mut random::MTRng32, width: u16, height: u16) -> (u16, u16) {
         (cmp::min(rng.rand() as u16 % constants::DISPLAY_SIZE.0,
                   constants::DISPLAY_SIZE.0 - width - 1),
          cmp::min(rng.rand() as u16 % constants::DISPLAY_SIZE.1,
