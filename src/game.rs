@@ -14,35 +14,51 @@ pub struct Game<'a> {
     pub countdown: u16,
     pub rand: random::MTRng32,
     pub tick: usize,
-    pub last_super_trump_render_time: usize,
+    pub last_super_target_render_time: usize,
     pub last_ssd_render_time: usize,
     pub ss_ctr_display: SSDisplay,
     pub ss_hs_display: SSDisplay,
+    pub hero_target_img: &'static [u8],
+    pub super_target_img: &'static [u8],
+    pub evil_target_img: &'static [u8],
 }
 
 impl<'a> Game<'a> {
     pub fn draw_start_banner(&mut self) {
         self.clear_banner();
-        self.rend.draw_dump(0, 90, constants::START_SIZE, ::START);
+        self.rend
+            .draw_dump(0, 90, constants::START_SIZE, ::START);
     }
 
-    pub fn start(&mut self) {
-        self.ss_ctr_display.render(constants::GAME_TIME, constants::BLACK, self.rend);
+    pub fn start(&mut self, touch: (u16, u16)) {
+        self.ss_ctr_display
+            .render(constants::GAME_TIME, constants::BLACK, self.rend);
         self.ss_hs_display.render(0, constants::BLACK, self.rend);
         let tick = system_clock::ticks();
         self.last_ssd_render_time = tick;
-        self.last_super_trump_render_time = tick;
+        self.last_super_target_render_time = tick;
         self.tick = tick;
         self.countdown = constants::GAME_TIME;
         self.clear_banner();
+
+        if touch.0 < constants::DISPLAY_SIZE.0 / 2 {
+            self.hero_target_img = ::MEXICAN;
+            self.super_target_img = ::SUPER_TRUMP;
+            self.evil_target_img = ::TRUMP;
+        } else {
+            self.hero_target_img = ::TRUMP;
+            self.super_target_img = ::SUPER_TRUMP;
+            self.evil_target_img = ::MEXICAN;
+        }
     }
 
     fn clear_banner(&mut self) {
         let h = constants::GAME_OVER_SIZE.1 +
                 SSDisplay::calculate_height(constants::ELEMENT_WIDTH_BIG);
-        self.rend.clear(0,
-                        constants::GAME_OVER_OFFSET_Y,
-                        (constants::DISPLAY_SIZE.0, h));
+        self.rend
+            .clear(0,
+                   constants::GAME_OVER_OFFSET_Y,
+                   (constants::DISPLAY_SIZE.0, h));
     }
 
     pub fn update_countdown(&mut self) -> u16 {
@@ -54,7 +70,8 @@ impl<'a> Game<'a> {
             } else {
                 constants::BLACK
             };
-            self.ss_ctr_display.render(self.countdown, color, self.rend);
+            self.ss_ctr_display
+                .render(self.countdown, color, self.rend);
             self.last_ssd_render_time = self.tick;
         }
         self.countdown
@@ -62,7 +79,7 @@ impl<'a> Game<'a> {
 
     pub fn draw_missing_targets(&mut self) {
         // rendering random positioned evil targets
-        while self.evil_targets.len() < 5 {
+        while self.evil_targets.len() < constants::MAX_EVIL_TARGETS {
             let lifetime = Self::get_rnd_lifetime(&mut self.rand, 3000, 5000);
             let pos: (u16, u16) =
                 Self::get_rnd_pos(&mut self.rand, &self.hero_targets, &self.evil_targets);
@@ -80,19 +97,27 @@ impl<'a> Game<'a> {
                                                 100,
                                                 self.tick,
                                                 2000);
-            if self.tick - self.last_super_trump_render_time >=
+            if self.tick - self.last_super_target_render_time >=
                8000 + (self.rand.rand() as usize % 3000) {
-                self.rend.draw_dump(pos.0, pos.1, constants::TARGET_SIZE_50, ::SUPER_TRUMP);
-                self.last_super_trump_render_time = self.tick;
+                self.rend
+                    .draw_dump(pos.0,
+                               pos.1,
+                               constants::TARGET_SIZE_50,
+                               self.super_target_img);
+                self.last_super_target_render_time = self.tick;
                 self.evil_targets.push(super_evil_target);
             } else {
-                self.rend.draw_dump(pos.0, pos.1, constants::TARGET_SIZE_50, ::TRUMP);
+                self.rend
+                    .draw_dump(pos.0,
+                               pos.1,
+                               constants::TARGET_SIZE_50,
+                               self.evil_target_img);
                 self.evil_targets.push(evil_target);
             }
         }
 
         // rendering random positioned hero targets
-        while self.hero_targets.len() < 3 {
+        while self.hero_targets.len() < constants::MAX_HERO_TARGETS {
             let lifetime = Self::get_rnd_lifetime(&mut self.rand, 3000, 5000);
             let pos: (u16, u16) =
                 Self::get_rnd_pos(&mut self.rand, &self.hero_targets, &self.evil_targets);
@@ -103,7 +128,11 @@ impl<'a> Game<'a> {
                                           70,
                                           self.tick,
                                           lifetime);
-            self.rend.draw_dump(pos.0, pos.1, constants::TARGET_SIZE_50, ::MEXICAN);
+            self.rend
+                .draw_dump(pos.0,
+                           pos.1,
+                           constants::TARGET_SIZE_50,
+                           self.hero_target_img);
             self.hero_targets.push(hero_target);
         }
     }
@@ -116,7 +145,8 @@ impl<'a> Game<'a> {
                 let t = self.evil_targets.remove(*hit_index);
                 self.rend.clear(t.x, t.y, (t.width, t.height));
                 self.score += t.bounty;
-                self.ss_hs_display.render(self.score, constants::GREEN, self.rend);
+                self.ss_hs_display
+                    .render(self.score, constants::GREEN, self.rend);
             }
             let mut hit_hero_targets = Target::check_for_hit(&mut self.hero_targets, &touches);
             hit_hero_targets.sort();
@@ -128,7 +158,8 @@ impl<'a> Game<'a> {
                 } else {
                     t.bounty
                 };
-                self.ss_hs_display.render(self.score, constants::RED, self.rend);
+                self.ss_hs_display
+                    .render(self.score, constants::RED, self.rend);
             }
         }
     }
@@ -165,10 +196,11 @@ impl<'a> Game<'a> {
     pub fn game_over(&mut self) {
         let score = self.score;
         self.reset_game();
-        self.rend.draw_dump(0,
-                            constants::GAME_OVER_OFFSET_Y,
-                            constants::GAME_OVER_SIZE,
-                            ::GAMEOVER);
+        self.rend
+            .draw_dump(0,
+                       constants::GAME_OVER_OFFSET_Y,
+                       constants::GAME_OVER_SIZE,
+                       ::GAMEOVER);
         let ss_end_display =
             SSDisplay::new(((constants::DISPLAY_SIZE.0 -
                              SSDisplay::calculate_width(constants::ELEMENT_WIDTH_BIG,
@@ -317,3 +349,4 @@ impl Target {
         indices
     }
 }
+

@@ -159,7 +159,7 @@ fn main(hw: board::Hardware) -> ! {
         countdown: constants::GAME_TIME,
         rand: rand,
         tick: tick,
-        last_super_trump_render_time: tick,
+        last_super_target_render_time: tick,
         last_ssd_render_time: tick,
         ss_ctr_display:
             SSDisplay::new((constants::DISPLAY_SIZE.0 -
@@ -171,6 +171,9 @@ fn main(hw: board::Hardware) -> ! {
         ss_hs_display: SSDisplay::new((0, 0),
                                       constants::ELEMENT_WIDTH_SMALL,
                                       constants::ELEMENT_GAP_SMALL),
+        hero_target_img: ::MEXICAN,
+        super_target_img: ::SUPER_TRUMP,
+        evil_target_img: ::TRUMP,
     };
 
     game.draw_start_banner();
@@ -193,7 +196,7 @@ fn main(hw: board::Hardware) -> ! {
                 if button_pressed {
                     game.reset_game();
                     stm32f7::system_clock::wait(3000);
-                    game.start();
+                    game.start((0,0)); //TODO
                 }
             } else {
                 // GAME OVER!
@@ -202,7 +205,7 @@ fn main(hw: board::Hardware) -> ! {
             }
         } else if start_drawn && !touches.is_empty() {
             start_drawn = false;
-            game.start();
+            game.start(touches.pop().unwrap());
             game_running = true;
         } else if !touches.is_empty() {
             game.draw_start_banner();
