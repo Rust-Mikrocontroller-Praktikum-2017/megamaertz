@@ -5,8 +5,10 @@ pub const DISPLAY_SIZE: (u16, u16) = (480, 272);
 pub const TARGET_SIZE_50: (u16, u16) = (50, 50);
 
 // seven_segment
-pub const SEGMENT_SIZE: (u16, u16) = (6, 3);
-pub const ELEMENT_GAP: u16 = 3;
+pub const ELEMENT_WIDTH_SMALL: u16 = 12;
+pub const ELEMENT_GAP_SMALL: u16 = 3;
+pub const ELEMENT_WIDTH_BIG: u16 = 24;
+pub const ELEMENT_GAP_BIG: u16 = ELEMENT_GAP_SMALL;
 
 // colors
 pub const RED: u16 = 0xFC00;
@@ -15,4 +17,3 @@ pub const BLACK: u16 = 0x8000;
 
 // game constants
 pub const GAME_TIME: u16 = 30;
-

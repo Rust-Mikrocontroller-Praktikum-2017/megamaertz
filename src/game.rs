@@ -222,9 +222,17 @@ impl<'a> Game<'a> {
 
     fn pos_is_okay(pos: (u16, u16), existing_hero: &[Target], existing_evil: &[Target]) -> bool {
         let score_ul = (0, 0);
-        let score_lr = (SSDisplay::get_width(), SSDisplay::get_height());
-        let timer_ul = (constants::DISPLAY_SIZE.0 - SSDisplay::get_width(), 0);
-        let timer_lr = (timer_ul.0 + SSDisplay::get_width(), SSDisplay::get_height());
+        let score_lr = (SSDisplay::calculate_width(constants::ELEMENT_WIDTH_SMALL,
+                                                   constants::ELEMENT_GAP_SMALL),
+                        SSDisplay::calculate_height(constants::ELEMENT_WIDTH_SMALL));
+        let timer_ul = (constants::DISPLAY_SIZE.0 -
+                        SSDisplay::calculate_width(constants::ELEMENT_WIDTH_SMALL,
+                                                   constants::ELEMENT_GAP_SMALL),
+                        0);
+        let timer_lr = (timer_ul.0 +
+                        SSDisplay::calculate_width(constants::ELEMENT_WIDTH_SMALL,
+                                                   constants::ELEMENT_GAP_SMALL),
+                        SSDisplay::calculate_height(constants::ELEMENT_WIDTH_SMALL));
         if Self::point_is_within(pos, score_ul, score_lr) ||
            Self::point_is_within((pos.0 + constants::TARGET_SIZE_50.0, pos.1),
                                  timer_ul,

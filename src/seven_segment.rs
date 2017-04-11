@@ -1,5 +1,4 @@
 use collections::vec::Vec;
-use constants;
 use renderer::Renderer;
 
 struct Segment {
@@ -7,22 +6,22 @@ struct Segment {
 }
 
 impl Segment {
-    pub fn new_horizontal(x_offset: u16, y_offset: u16) -> Self {
+    pub fn new_horizontal(offset: (u16, u16), seg_size: (u16, u16)) -> Self {
         let mut result: Vec<(u16, u16)> = Vec::new();
-        for y in 0..constants::SEGMENT_SIZE.1 {
-            for x in 0..constants::SEGMENT_SIZE.0 {
-                result.push(((x + x_offset) as u16, (y + y_offset) as u16));
+        for y in 0..seg_size.1 {
+            for x in 0..seg_size.0 {
+                result.push((x + offset.0, y + offset.1));
             }
         }
 
         Segment { pixel: result }
     }
 
-    pub fn new_vertical(x_offset: u16, y_offset: u16) -> Self {
+    pub fn new_vertical(offset: (u16, u16), seg_size: (u16, u16)) -> Self {
         let mut result: Vec<(u16, u16)> = Vec::new();
-        for y in 0..constants::SEGMENT_SIZE.0 {
-            for x in 0..constants::SEGMENT_SIZE.1 {
-                result.push(((x + x_offset) as u16, (y + y_offset) as u16));
+        for y in 0..seg_size.0 {
+            for x in 0..seg_size.1 {
+                result.push((x + offset.0, y + offset.1));
             }
         }
 
@@ -32,30 +31,30 @@ impl Segment {
 
 pub struct SSDisplay {
     segs: [Segment; 7],
-    x: u16,
-    y: u16,
+    pos: (u16, u16),
+    elem_width: u16,
+    gap: u16,
 }
 
 impl SSDisplay {
-    pub fn new(x: u16, y: u16) -> Self {
+    // scales elemts in a factor of 2/1 (height/width) with the given width
+    pub fn new(pos: (u16, u16), elem_width: u16, gap: u16) -> Self {
+        let seg_size = (elem_width / 2, elem_width / 4);
         SSDisplay {
-            segs: [Segment::new_horizontal(constants::SEGMENT_SIZE.1, 0),
-                   Segment::new_vertical(constants::SEGMENT_SIZE.1 + constants::SEGMENT_SIZE.0,
-                                         constants::SEGMENT_SIZE.1),
-                   Segment::new_vertical(constants::SEGMENT_SIZE.1 + constants::SEGMENT_SIZE.0,
-                                         constants::SEGMENT_SIZE.0 * 2),
-                   Segment::new_horizontal(constants::SEGMENT_SIZE.1,
-                                           constants::SEGMENT_SIZE.0 * 3),
-                   Segment::new_vertical(0, constants::SEGMENT_SIZE.0 * 2),
-                   Segment::new_vertical(0, constants::SEGMENT_SIZE.1),
-                   Segment::new_horizontal(constants::SEGMENT_SIZE.1,
-                                           constants::SEGMENT_SIZE.0 + constants::SEGMENT_SIZE.1)],
-            x: x,
-            y: y,
+            segs: [Segment::new_horizontal((seg_size.1, 0), seg_size),
+                   Segment::new_vertical((seg_size.1 + seg_size.0, seg_size.1), seg_size),
+                   Segment::new_vertical((seg_size.1 + seg_size.0, seg_size.0 * 2), seg_size),
+                   Segment::new_horizontal((seg_size.1, seg_size.0 * 3), seg_size),
+                   Segment::new_vertical((0, seg_size.0 * 2), seg_size),
+                   Segment::new_vertical((0, seg_size.1), seg_size),
+                   Segment::new_horizontal((seg_size.1, seg_size.0 + seg_size.1), seg_size)],
+            pos: pos,
+            elem_width: elem_width,
+            gap: gap,
         }
     }
 
-    pub fn render(&mut self, n: u16, color: u16, rend: &mut Renderer) {
+    pub fn render(&self, n: u16, color: u16, rend: &mut Renderer) {
         let bcd = u16_to_bcd(n);
         let mut offset = 0;
         for i in (0..5).rev() {
@@ -63,37 +62,29 @@ impl SSDisplay {
             for s_num in print {
                 let seg = &self.segs[s_num];
                 for p in &seg.pixel {
-                    // result.push((p.0 + offset + self.x, p.1 + self.y, color));
-                    rend.render_pixel(p.0 + offset + self.x, p.1 + self.y, color);
+                    // result.push((p.0 + offset + self.pos.0, p.1 + self.pos.1, color));
+                    rend.render_pixel(p.0 + offset + self.pos.0, p.1 + self.pos.1, color);
                 }
             }
 
             for a_num in alpha {
                 let seg = &self.segs[a_num];
                 for p in &seg.pixel {
-                    // result.push((p.0 + offset + self.x, p.1 + self.y, 0x0000));
-                    rend.render_pixel(p.0 + offset + self.x, p.1 + self.y, 0x0000);
+                    // result.push((p.0 + offset + self.pos.0, p.1 + self.pos.1, 0x0000));
+                    rend.render_pixel(p.0 + offset + self.pos.0, p.1 + self.pos.1, 0x0000);
                 }
             }
 
-            offset += constants::ELEMENT_GAP + Self::get_element_width();
+            offset += self.elem_width + self.gap;
         }
     }
 
-    pub fn get_width() -> u16 {
-        5 * Self::get_element_width() + 4 * constants::ELEMENT_GAP
+    pub fn calculate_width(elem_width: u16, gap: u16) -> u16 {
+        5 * elem_width + 4 * gap
     }
 
-    pub fn get_height() -> u16 {
-        Self::get_element_height()
-    }
-
-    pub fn get_element_width() -> u16 {
-        2 * constants::SEGMENT_SIZE.1 + constants::SEGMENT_SIZE.0
-    }
-
-    pub fn get_element_height() -> u16 {
-        2 * constants::SEGMENT_SIZE.0 + 3 * constants::SEGMENT_SIZE.1
+    pub fn calculate_height(elem_width: u16) -> u16 {
+        2 * elem_width
     }
 }
 

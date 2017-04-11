@@ -111,8 +111,8 @@ fn main(hw: board::Hardware) -> ! {
 
     // button controller for reset button
     let button_pin = (gpio::Port::PortI, gpio::Pin::Pin11);
-    let button =
-    gpio.to_input(button_pin, gpio::Resistor::NoPull).expect("button pin already in use");
+    let button = gpio.to_input(button_pin, gpio::Resistor::NoPull)
+        .expect("button pin already in use");
 
     // init sdram (needed for display buffer)
     sdram::init(rcc, fmc, &mut gpio);
@@ -161,8 +161,16 @@ fn main(hw: board::Hardware) -> ! {
         tick: tick,
         last_super_trump_render_time: tick,
         last_ssd_render_time: tick,
-        ss_ctr_display: SSDisplay::new(constants::DISPLAY_SIZE.0 - SSDisplay::get_width(), 0),
-        ss_hs_display: SSDisplay::new(0, 0),
+        ss_ctr_display:
+            SSDisplay::new((constants::DISPLAY_SIZE.0 -
+                            SSDisplay::calculate_width(constants::ELEMENT_WIDTH_SMALL,
+                                                       constants::ELEMENT_GAP_SMALL),
+                            0),
+                           constants::ELEMENT_WIDTH_SMALL,
+                           constants::ELEMENT_GAP_SMALL),
+        ss_hs_display: SSDisplay::new((0, 0),
+                                      constants::ELEMENT_WIDTH_SMALL,
+                                      constants::ELEMENT_GAP_SMALL),
     };
 
     // game.start();
