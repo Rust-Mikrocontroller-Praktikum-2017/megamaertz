@@ -25,6 +25,7 @@ static TRUMP: &'static [u8] = include_bytes!("../pics/trump_cartoon.dump");
 static SUPER_TRUMP: &'static [u8] = include_bytes!("../pics/mexican_trump_head.dump");
 static MEXICAN: &'static [u8] = include_bytes!("../pics/mexican_cartoon.dump");
 static BACKGROUND: &'static [u8] = include_bytes!("../pics/desert.dump");
+static START: &'static [u8] = include_bytes!("../pics/start.dump");
 static GAMEOVER: &'static [u8] = include_bytes!("../pics/gameover.dump");
 
 #[no_mangle]
