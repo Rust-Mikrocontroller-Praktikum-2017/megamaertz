@@ -172,8 +172,8 @@ fn main(hw: board::Hardware) -> ! {
                                       constants::ELEMENT_WIDTH_SMALL,
                                       constants::ELEMENT_GAP_SMALL),
     };
+    game.init();
 
-    // game.start();
     let mut game_running = false;
     loop {
         let mut touches: Vec<(u16, u16)> = Vec::new();

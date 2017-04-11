@@ -21,6 +21,11 @@ pub struct Game<'a> {
 }
 
 impl<'a> Game<'a> {
+    pub fn init(&mut self) {
+        self.rend
+            .draw_dump(0, 90, constants::START_SIZE, ::START);
+    }
+
     pub fn start(&mut self) {
         self.ss_ctr_display
             .render(constants::GAME_TIME, constants::BLACK, self.rend);
@@ -30,6 +35,14 @@ impl<'a> Game<'a> {
         self.last_super_trump_render_time = tick;
         self.tick = tick;
         self.countdown = constants::GAME_TIME;
+
+        //clear screen
+        let h = constants::GAME_OVER_SIZE.1 +
+                SSDisplay::calculate_height(constants::ELEMENT_WIDTH_BIG);
+        self.rend
+            .clear(0,
+                   constants::GAME_OVER_OFFSET_Y,
+                   (constants::DISPLAY_SIZE.0, h));
     }
 
     pub fn update_countdown(&mut self) -> u16 {
@@ -158,16 +171,20 @@ impl<'a> Game<'a> {
     pub fn game_over(&mut self) {
         let score = self.score;
         self.reset_game();
-        self.rend.draw_dump(0, 90, (480, 64), ::GAMEOVER);
+        self.rend
+            .draw_dump(0,
+                       constants::GAME_OVER_OFFSET_Y,
+                       constants::GAME_OVER_SIZE,
+                       ::GAMEOVER);
         let ss_end_display =
             SSDisplay::new(((constants::DISPLAY_SIZE.0 -
-                            SSDisplay::calculate_width(constants::ELEMENT_WIDTH_BIG,
-                                                       constants::ELEMENT_GAP_BIG)) / 2,
+                             SSDisplay::calculate_width(constants::ELEMENT_WIDTH_BIG,
+                                                        constants::ELEMENT_GAP_BIG)) /
+                            2,
                             160),
                            constants::ELEMENT_WIDTH_BIG,
                            constants::ELEMENT_GAP_BIG);
         ss_end_display.render(score, constants::BLACK, self.rend);
-        //draw score
     }
 
 
@@ -307,3 +324,4 @@ impl Target {
         indices
     }
 }
+
