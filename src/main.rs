@@ -111,8 +111,8 @@ fn main(hw: board::Hardware) -> ! {
 
     // button controller for reset button
     let button_pin = (gpio::Port::PortI, gpio::Pin::Pin11);
-    let button = gpio.to_input(button_pin, gpio::Resistor::NoPull)
-        .expect("button pin already in use");
+    let button =
+        gpio.to_input(button_pin, gpio::Resistor::NoPull).expect("button pin already in use");
 
     // init sdram (needed for display buffer)
     sdram::init(rcc, fmc, &mut gpio);
@@ -172,8 +172,9 @@ fn main(hw: board::Hardware) -> ! {
                                       constants::ELEMENT_WIDTH_SMALL,
                                       constants::ELEMENT_GAP_SMALL),
     };
-    game.init();
 
+    game.draw_start_banner();
+    let mut start_drawn = true;
     let mut game_running = false;
     loop {
         let mut touches: Vec<(u16, u16)> = Vec::new();
@@ -199,11 +200,13 @@ fn main(hw: board::Hardware) -> ! {
                 game.game_over();
                 game_running = false;
             }
-        } else {
-            if touches.len() > 0 {
-                game.start();
-                game_running = true;
-            }
+        } else if start_drawn && !touches.is_empty() {
+            start_drawn = false;
+            game.start();
+            game_running = true;
+        } else if !touches.is_empty() {
+            game.draw_start_banner();
+            start_drawn = true;
         }
     }
 
