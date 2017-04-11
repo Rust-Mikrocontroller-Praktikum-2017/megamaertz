@@ -25,7 +25,7 @@ use random::Rng;
 static TRUMP: &'static [u8] = include_bytes!("../pics/trump_cartoon.dump");
 static SUPER_TRUMP: &'static [u8] = include_bytes!("../pics/mexican_trump_head.dump");
 static MEXICAN: &'static [u8] = include_bytes!("../pics/mexican_cartoon.dump");
-static BACKGROUND: &'static [u8] = include_bytes!("../pics/background.dump");
+static BACKGROUND: &'static [u8] = include_bytes!("../pics/desert.dump");
 
 #[no_mangle]
 pub unsafe extern "C" fn reset() -> ! {
@@ -54,6 +54,7 @@ pub unsafe extern "C" fn reset() -> ! {
     main(board::hw());
 }
 
+#[inline(never)]
 fn main(hw: board::Hardware) -> ! {
     let board::Hardware { rcc,
                           rng,
