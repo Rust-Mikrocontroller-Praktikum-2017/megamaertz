@@ -61,7 +61,7 @@ impl<'a> Game<'a> {
         self.clear_banner();
 
         // which game mode?
-        if touch.0 < constants::DISPLAY_SIZE.0 / 2 {
+        if touch.0 > constants::DISPLAY_SIZE.0 / 2 {
             self.hero_target_img = constants::MEXICAN;
             self.super_target_img = constants::SUPER_TRUMP;
             self.evil_target_img = constants::TRUMP;
@@ -230,7 +230,7 @@ impl<'a> Game<'a> {
         self.reset_game();
         self.rend
             .clear(0,
-                   constants::DISPLAY_SIZE.1 - constants::SILENT_BTN_SIZE.1,
+                   constants::DISPLAY_SIZE.1 - constants::SILENT_BTN_SIZE.1 - 1,
                    constants::SILENT_BTN_SIZE);
         self.rend
             .draw_dump(0,
