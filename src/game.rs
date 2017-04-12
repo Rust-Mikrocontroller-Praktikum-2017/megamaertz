@@ -21,6 +21,7 @@ pub struct Game<'a> {
     pub hero_target_img: &'static [u8],
     pub super_target_img: &'static [u8],
     pub evil_target_img: &'static [u8],
+    pub silent_mode: bool,
 }
 
 impl<'a> Game<'a> {
@@ -50,6 +51,8 @@ impl<'a> Game<'a> {
             self.super_target_img = ::SUPER_TRUMP;
             self.evil_target_img = ::MEXICAN;
         }
+
+        self.silent_mode = touch.1 > constants::DISPLAY_SIZE.1 / 2;
     }
 
     fn clear_banner(&mut self) {
@@ -138,13 +141,15 @@ impl<'a> Game<'a> {
     }
 
     pub fn process_shooting(&mut self, sai_2: &'static Sai, touches: Vec<(u16, u16)>) {
-        let mult = if Self::vol_limit_reached(sai_2) { 2 } else { 1 };
+        if !Self::vol_limit_reached(sai_2) && !self.silent_mode {
+            return;
+        }
         let mut hit_evil_targets = Target::check_for_hit(&mut self.evil_targets, &touches);
         hit_evil_targets.sort();
         for hit_index in hit_evil_targets.iter().rev() {
             let t = self.evil_targets.remove(*hit_index);
             self.rend.clear(t.x, t.y, (t.width, t.height));
-            self.score += t.bounty * mult;
+            self.score += t.bounty;
             self.ss_hs_display
                 .render(self.score, constants::GREEN, self.rend);
         }
@@ -156,7 +161,7 @@ impl<'a> Game<'a> {
             self.score -= if self.score < t.bounty {
                 self.score
             } else {
-                t.bounty * mult
+                t.bounty
             };
             self.ss_hs_display
                 .render(self.score, constants::RED, self.rend);
@@ -348,3 +353,4 @@ impl Target {
         indices
     }
 }
+

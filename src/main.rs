@@ -174,6 +174,7 @@ fn main(hw: board::Hardware) -> ! {
         hero_target_img: ::MEXICAN,
         super_target_img: ::SUPER_TRUMP,
         evil_target_img: ::TRUMP,
+        silent_mode: false,
     };
 
     game.draw_start_banner();
