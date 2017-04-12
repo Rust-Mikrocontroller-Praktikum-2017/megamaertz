@@ -61,7 +61,7 @@ impl<'a> Game<'a> {
         self.clear_banner();
 
         // which game mode?
-        if touch.0 < constants::DISPLAY_SIZE.0 / 2 {
+        if touch.0 > constants::DISPLAY_SIZE.0 / 2 {
             self.hero_target_img = ::MEXICAN;
             self.super_target_img = ::SUPER_TRUMP;
             self.evil_target_img = ::TRUMP;
