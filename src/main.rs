@@ -31,8 +31,8 @@ static START: &'static [u8] = include_bytes!("../pics/start.dump");
 static GAMEOVER: &'static [u8] = include_bytes!("../pics/gameover.dump");
 static TACO_MODE: &'static [u8] = include_bytes!("../pics/taco.dump");
 static BURGER_MODE: &'static [u8] = include_bytes!("../pics/burger.dump");
-static SILENT_BTN_NEG: &'static [u8] = include_bytes!("../pics/micro_on.dump");
-static SILENT_BTN: &'static [u8] = include_bytes!("../pics/micro_off.dump");
+static SILENT_BTN_NEG: &'static [u8] = include_bytes!("../pics/mic_on.dump");
+static SILENT_BTN: &'static [u8] = include_bytes!("../pics/mic_off.dump");
 
 #[no_mangle]
 pub unsafe extern "C" fn reset() -> ! {
@@ -63,28 +63,26 @@ pub unsafe extern "C" fn reset() -> ! {
 
 #[inline(never)]
 fn main(hw: board::Hardware) -> ! {
-    let board::Hardware {
-        rcc,
-        rng,
-        pwr,
-        flash,
-        fmc,
-        ltdc,
-        gpio_a,
-        gpio_b,
-        gpio_c,
-        gpio_d,
-        gpio_e,
-        gpio_f,
-        gpio_g,
-        gpio_h,
-        gpio_i,
-        gpio_j,
-        gpio_k,
-        i2c_3,
-        sai_2,
-        ..
-    } = hw;
+    let board::Hardware { rcc,
+                          rng,
+                          pwr,
+                          flash,
+                          fmc,
+                          ltdc,
+                          gpio_a,
+                          gpio_b,
+                          gpio_c,
+                          gpio_d,
+                          gpio_e,
+                          gpio_f,
+                          gpio_g,
+                          gpio_h,
+                          gpio_i,
+                          gpio_j,
+                          gpio_k,
+                          i2c_3,
+                          sai_2,
+                          .. } = hw;
 
     let mut gpio = Gpio::new(gpio_a,
                              gpio_b,
