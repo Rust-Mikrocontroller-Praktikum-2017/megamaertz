@@ -7,23 +7,23 @@ use stm32f7::board::sai::Sai;
 use stm32f7::system_clock;
 
 pub struct Game {
-    pub evil_targets: Vec<Target>,
-    pub hero_targets: Vec<Target>,
-    pub rend: renderer::Renderer,
-    pub score: u16,
-    pub highscore: u16,
-    pub countdown: u16,
-    pub rand: random::MTRng32,
-    pub tick: usize,
-    pub last_super_target_render_time: usize,
-    pub super_target_hiding_duration: usize,
-    pub last_ssd_render_time: usize,
-    pub ss_ctr_display: SSDisplay,
-    pub ss_hs_display: SSDisplay,
-    pub hero_target_img: &'static [u8],
-    pub super_target_img: &'static [u8],
-    pub evil_target_img: &'static [u8],
-    pub silent_mode: bool,
+    evil_targets: Vec<Target>,
+    hero_targets: Vec<Target>,
+    rend: renderer::Renderer,
+    score: u16,
+    highscore: u16,
+    countdown: u16,
+    rand: random::MTRng32,
+    tick: usize,
+    last_super_target_render_time: usize,
+    super_target_hiding_duration: usize,
+    last_ssd_render_time: usize,
+    ss_ctr_display: SSDisplay,
+    ss_hs_display: SSDisplay,
+    hero_target_img: &'static [u8],
+    super_target_img: &'static [u8],
+    evil_target_img: &'static [u8],
+    silent_mode: bool,
 }
 
 impl Game {
@@ -454,3 +454,4 @@ impl Target {
         indices
     }
 }
+
