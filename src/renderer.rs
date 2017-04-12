@@ -4,13 +4,13 @@ use core::cmp;
 use constants;
 use random;
 
-pub struct Renderer<'a> {
-    display: &'a mut lcd::Lcd,
+pub struct Renderer {
+    display: lcd::Lcd,
     last_touch: (u16, u16),
 }
 
-impl<'a> Renderer<'a> {
-    pub fn new(display: &'a mut lcd::Lcd) -> Self {
+impl Renderer {
+    pub fn new(display: lcd::Lcd) -> Self {
         Renderer {
             display: display,
             last_touch: (240, 136),
@@ -200,3 +200,4 @@ impl RGBColor {
         Self::from_rgb(r, g, b)
     }
 }
+

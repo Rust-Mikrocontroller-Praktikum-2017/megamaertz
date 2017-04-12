@@ -19,7 +19,6 @@ pub mod game;
 
 use stm32f7::{system_clock, sdram, lcd, i2c, audio, touch, board, embedded};
 use collections::vec::Vec;
-use seven_segment::SSDisplay;
 use embedded::interfaces::gpio::Gpio; // {self, Gpio} for use with button
 
 #[no_mangle]
@@ -135,41 +134,14 @@ fn main(hw: board::Hardware) -> ! {
     let rand = random::MTRng32::new(seed.unwrap());
 
     //renderer
-    let mut rend = renderer::Renderer::new(&mut lcd);
+    let mut rend = renderer::Renderer::new(lcd);
     rend.draw_dump_bg(0,
                       0,
                       (constants::DISPLAY_SIZE.0, constants::DISPLAY_SIZE.1),
                       constants::BACKGROUND);
 
-    let tick = system_clock::ticks();
-
     //create and init game
-    let mut game = game::Game {
-        evil_targets: Vec::new(),
-        hero_targets: Vec::new(),
-        rend: &mut rend,
-        score: 0,
-        countdown: constants::GAME_TIME,
-        rand: rand,
-        tick: tick,
-        last_super_target_render_time: tick,
-        super_target_hiding_duration: 0,
-        last_ssd_render_time: tick,
-        ss_ctr_display:
-            SSDisplay::new((constants::DISPLAY_SIZE.0 -
-                            SSDisplay::calculate_width(constants::ELEMENT_WIDTH_SMALL,
-                                                       constants::ELEMENT_GAP_SMALL),
-                            0),
-                           constants::ELEMENT_WIDTH_SMALL,
-                           constants::ELEMENT_GAP_SMALL),
-        ss_hs_display: SSDisplay::new((0, 0),
-                                      constants::ELEMENT_WIDTH_SMALL,
-                                      constants::ELEMENT_GAP_SMALL),
-        hero_target_img: constants::MEXICAN,
-        super_target_img: constants::SUPER_TRUMP,
-        evil_target_img: constants::TRUMP,
-        silent_mode: false,
-    };
+    let mut game = game::Game::new(rend, rand);
 
     // draw game banner
     game.draw_game_banner();
