@@ -13,6 +13,7 @@ pub static SILENT_BTN_NEG: &'static [u8] = include_bytes!("../pics/mic_on.dump")
 pub static SILENT_BTN: &'static [u8] = include_bytes!("../pics/mic_off.dump");
 
 // renderer
+pub const FIESTA_SIZE: (u16, u16) = (480, 53);
 pub const DISPLAY_SIZE: (u16, u16) = (480, 272);
 pub const GAME_OVER_SIZE: (u16, u16) = (480, 64);
 pub const GAME_OVER_OFFSET_Y: u16 = 90;
@@ -41,4 +42,3 @@ pub const EVIL_POINTS: u16 = 50;
 pub const SUPER_EVIL_POINTS: u16 = 100;
 pub const SUPER_TARGET_HIDING_DURATION: (usize, usize) = (5000, 10000);
 pub const VOLUME_THRESHOLD: u16 = 2000;
-

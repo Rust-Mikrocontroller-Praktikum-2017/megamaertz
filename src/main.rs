@@ -171,9 +171,20 @@ fn main(hw: board::Hardware) -> ! {
         silent_mode: false,
     };
 
+    // draw game banner
+    game.draw_game_banner();
+    loop {
+        if !touch::touches(&mut i2c_3).unwrap().is_empty() {
+            break;
+        }
+    }
+
+    // switch to start screen
     game.draw_start_banner();
     let mut game_running = false;
     let mut touches_to_start = 1;
+
+    // loop game
     loop {
         let mut touches: Vec<(u16, u16)> = Vec::new();
         for touch in &touch::touches(&mut i2c_3).unwrap() {
