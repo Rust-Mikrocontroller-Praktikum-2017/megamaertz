@@ -15,6 +15,7 @@ pub struct Game<'a> {
     pub rand: random::MTRng32,
     pub tick: usize,
     pub last_super_target_render_time: usize,
+    pub super_target_hiding_duration: usize,
     pub last_ssd_render_time: usize,
     pub ss_ctr_display: SSDisplay,
     pub ss_hs_display: SSDisplay,
@@ -38,7 +39,10 @@ impl<'a> Game<'a> {
         let tick = system_clock::ticks();
         self.last_ssd_render_time = tick;
         self.last_super_target_render_time = tick;
-        self.tick = tick;
+        self.super_target_hiding_duration =
+            Self::get_rnd_lifetime(&mut self.rand,
+                                   constants::SUPER_TARGET_HIDING_DURATION.0,
+                                   constants::SUPER_TARGET_HIDING_DURATION.1);
         self.countdown = constants::GAME_TIME;
         self.clear_banner();
 
@@ -51,8 +55,6 @@ impl<'a> Game<'a> {
             self.super_target_img = ::SUPER_TRUMP;
             self.evil_target_img = ::MEXICAN;
         }
-
-        self.silent_mode = touch.1 > constants::DISPLAY_SIZE.1 / 2;
     }
 
     fn clear_banner(&mut self) {
@@ -100,8 +102,7 @@ impl<'a> Game<'a> {
                                                 constants::SUPER_EVIL_POINTS,
                                                 self.tick,
                                                 2000);
-            if self.tick - self.last_super_target_render_time >=
-               7000 + (self.rand.rand() as usize % 3000) {
+            if self.tick - self.last_super_target_render_time >= self.super_target_hiding_duration {
                 self.rend
                     .draw_dump(pos.0,
                                pos.1,
@@ -109,6 +110,10 @@ impl<'a> Game<'a> {
                                self.super_target_img);
                 self.last_super_target_render_time = self.tick;
                 self.evil_targets.push(super_evil_target);
+                self.super_target_hiding_duration =
+                    Self::get_rnd_lifetime(&mut self.rand,
+                                           constants::SUPER_TARGET_HIDING_DURATION.0,
+                                           constants::SUPER_TARGET_HIDING_DURATION.1);
             } else {
                 self.rend
                     .draw_dump(pos.0,
@@ -353,4 +358,3 @@ impl Target {
         indices
     }
 }
-

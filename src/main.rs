@@ -163,6 +163,7 @@ fn main(hw: board::Hardware) -> ! {
         rand: rand,
         tick: tick,
         last_super_target_render_time: tick,
+        super_target_hiding_duration: 0,
         last_ssd_render_time: tick,
         ss_ctr_display:
             SSDisplay::new((constants::DISPLAY_SIZE.0 -
