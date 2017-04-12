@@ -23,10 +23,12 @@ pub const GAME_MODE_BTN_SIZE: (u16, u16) = (80, 74);
 pub const TARGET_SIZE: (u16, u16) = (50, 50);
 
 // seven_segment
+pub const HEIGHT_TO_WIDTH_SCALING: u16 = 2;
 pub const ELEMENT_WIDTH_SMALL: u16 = 12;
 pub const ELEMENT_GAP_SMALL: u16 = 3;
 pub const ELEMENT_WIDTH_BIG: u16 = 24;
 pub const ELEMENT_GAP_BIG: u16 = ELEMENT_GAP_SMALL;
+pub const HS_SPACE_SIZE: u16 = 7;
 
 // colors
 pub const RED: u16 = 0xFC00;

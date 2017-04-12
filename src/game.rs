@@ -11,6 +11,7 @@ pub struct Game {
     pub hero_targets: Vec<Target>,
     pub rend: renderer::Renderer,
     pub score: u16,
+    pub highscore: u16,
     pub countdown: u16,
     pub rand: random::MTRng32,
     pub tick: usize,
@@ -33,6 +34,7 @@ impl Game {
             hero_targets: Vec::new(),
             rend: rend,
             score: 0,
+            highscore: 0,
             countdown: constants::GAME_TIME,
             rand: rand,
             tick: tick,
@@ -263,6 +265,10 @@ impl Game {
     }
 
     pub fn game_over(&mut self) {
+        if self.score > self.highscore {
+            self.highscore = self.score
+        }
+
         let score = self.score;
         self.reset_game();
         self.rend
@@ -274,15 +280,24 @@ impl Game {
                        constants::GAME_OVER_OFFSET_Y,
                        constants::GAME_OVER_SIZE,
                        constants::GAMEOVER);
-        let ss_end_display =
-            SSDisplay::new(((constants::DISPLAY_SIZE.0 -
-                             SSDisplay::calculate_width(constants::ELEMENT_WIDTH_BIG,
-                                                        constants::ELEMENT_GAP_BIG)) /
-                            2,
-                            160),
-                           constants::ELEMENT_WIDTH_BIG,
-                           constants::ELEMENT_GAP_BIG);
+
+        let ss_width = SSDisplay::calculate_width(constants::ELEMENT_WIDTH_BIG,
+                                                  constants::ELEMENT_GAP_BIG);
+        let ss_x = (constants::DISPLAY_SIZE.0 - ss_width) / 2;
+        let ss_y = constants::GAME_OVER_OFFSET_Y + constants::GAME_OVER_SIZE.1 + 6;
+        let ss_end_display = SSDisplay::new((ss_x, ss_y),
+                                            constants::ELEMENT_WIDTH_BIG,
+                                            constants::ELEMENT_GAP_BIG);
         ss_end_display.render(score, constants::BLACK, &mut self.rend);
+
+        let hs_x = ((constants::DISPLAY_SIZE.0 - ss_width) / 2) -
+                   SSDisplay::calculate_hs_prefix_width(constants::ELEMENT_WIDTH_BIG,
+                                                        constants::ELEMENT_GAP_BIG);
+        let hs_y = ss_y + SSDisplay::calculate_height(constants::ELEMENT_WIDTH_BIG) + 6;
+        let hs_end_display = SSDisplay::new((hs_x, hs_y),
+                                            constants::ELEMENT_WIDTH_BIG,
+                                            constants::ELEMENT_GAP_BIG);
+        hs_end_display.render_hs(self.highscore, constants::BLACK, &mut self.rend);
     }
 
 
@@ -439,4 +454,3 @@ impl Target {
         indices
     }
 }
-
