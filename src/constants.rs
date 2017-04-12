@@ -3,7 +3,8 @@ pub const DISPLAY_SIZE: (u16, u16) = (480, 272);
 pub const GAME_OVER_SIZE: (u16, u16) = (480, 64);
 pub const GAME_OVER_OFFSET_Y: u16 = 90;
 pub const START_SIZE: (u16, u16) = (480, 74);
-pub const SILENT_BTN_SIZE: (u16, u16) = (50, 50);
+pub const SILENT_BTN_SIZE: (u16, u16) = (40, 40);
+pub const GAME_MODE_BTN_SIZE: (u16, u16) = (80, 80);
 
 // targets
 pub const TARGET_SIZE_50: (u16, u16) = (50, 50);
