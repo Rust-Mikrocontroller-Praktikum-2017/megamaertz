@@ -31,19 +31,19 @@ impl<'a> Game<'a> {
         // draw start banner
         let start_y = constants::GAME_OVER_OFFSET_Y - 20;
         self.rend
-            .draw_dump(0, start_y, constants::START_SIZE, ::START);
+            .draw_dump(0, start_y, constants::START_SIZE, constants::START);
         //draw game mode banner
         let offset_x = constants::DISPLAY_SIZE.0 / 4 - constants::GAME_MODE_BTN_SIZE.0 / 2;
         self.rend
             .draw_dump(offset_x,
                        start_y + constants::START_SIZE.1 + 20,
                        constants::GAME_MODE_BTN_SIZE,
-                       ::BURGER_MODE);
+                       constants::BURGER_MODE);
         self.rend
             .draw_dump(offset_x + constants::DISPLAY_SIZE.0 / 2,
                        start_y + constants::START_SIZE.1 + 20,
                        constants::GAME_MODE_BTN_SIZE,
-                       ::TACO_MODE);
+                       constants::TACO_MODE);
     }
 
     pub fn start(&mut self, touch: (u16, u16)) {
@@ -61,23 +61,23 @@ impl<'a> Game<'a> {
         self.clear_banner();
 
         // which game mode?
-        if touch.0 > constants::DISPLAY_SIZE.0 / 2 {
-            self.hero_target_img = ::MEXICAN;
-            self.super_target_img = ::SUPER_TRUMP;
-            self.evil_target_img = ::TRUMP;
+        if touch.0 < constants::DISPLAY_SIZE.0 / 2 {
+            self.hero_target_img = constants::MEXICAN;
+            self.super_target_img = constants::SUPER_TRUMP;
+            self.evil_target_img = constants::TRUMP;
         } else {
-            self.hero_target_img = ::TRUMP;
-            self.super_target_img = ::SUPER_MEXICAN;
-            self.evil_target_img = ::MEXICAN;
+            self.hero_target_img = constants::TRUMP;
+            self.super_target_img = constants::SUPER_MEXICAN;
+            self.evil_target_img = constants::MEXICAN;
         }
         self.draw_silent_button();
     }
 
     fn draw_silent_button(&mut self) {
         let silent_btn = if self.silent_mode {
-            ::SILENT_BTN
+            constants::SILENT_BTN
         } else {
-            ::SILENT_BTN_NEG
+            constants::SILENT_BTN_NEG
         };
         self.rend
             .draw_dump(0,
@@ -242,7 +242,7 @@ impl<'a> Game<'a> {
             .draw_dump(0,
                        constants::GAME_OVER_OFFSET_Y,
                        constants::GAME_OVER_SIZE,
-                       ::GAMEOVER);
+                       constants::GAMEOVER);
         let ss_end_display =
             SSDisplay::new(((constants::DISPLAY_SIZE.0 -
                              SSDisplay::calculate_width(constants::ELEMENT_WIDTH_BIG,

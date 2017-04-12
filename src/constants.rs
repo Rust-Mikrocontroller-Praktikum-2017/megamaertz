@@ -1,3 +1,16 @@
+//pictures
+pub static TRUMP: &'static [u8] = include_bytes!("../pics/trump_cartoon.dump");
+pub static SUPER_TRUMP: &'static [u8] = include_bytes!("../pics/mexican_trump_head.dump");
+pub static MEXICAN: &'static [u8] = include_bytes!("../pics/mexican_cartoon.dump");
+pub static SUPER_MEXICAN: &'static [u8] = include_bytes!("../pics/super_mexican.dump");
+pub static BACKGROUND: &'static [u8] = include_bytes!("../pics/desert.dump");
+pub static START: &'static [u8] = include_bytes!("../pics/start.dump");
+pub static GAMEOVER: &'static [u8] = include_bytes!("../pics/gameover.dump");
+pub static TACO_MODE: &'static [u8] = include_bytes!("../pics/taco.dump");
+pub static BURGER_MODE: &'static [u8] = include_bytes!("../pics/burger.dump");
+pub static SILENT_BTN_NEG: &'static [u8] = include_bytes!("../pics/mic_on.dump");
+pub static SILENT_BTN: &'static [u8] = include_bytes!("../pics/mic_off.dump");
+
 // renderer
 pub const DISPLAY_SIZE: (u16, u16) = (480, 272);
 pub const GAME_OVER_SIZE: (u16, u16) = (480, 64);
