@@ -101,7 +101,7 @@ impl<'a> Game<'a> {
                                                 self.tick,
                                                 2000);
             if self.tick - self.last_super_target_render_time >=
-               8000 + (self.rand.rand() as usize % 3000) {
+               7000 + (self.rand.rand() as usize % 3000) {
                 self.rend
                     .draw_dump(pos.0,
                                pos.1,

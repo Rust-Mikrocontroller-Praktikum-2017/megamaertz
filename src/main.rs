@@ -57,26 +57,28 @@ pub unsafe extern "C" fn reset() -> ! {
 
 #[inline(never)]
 fn main(hw: board::Hardware) -> ! {
-    let board::Hardware { rcc,
-                          rng,
-                          pwr,
-                          flash,
-                          fmc,
-                          ltdc,
-                          gpio_a,
-                          gpio_b,
-                          gpio_c,
-                          gpio_d,
-                          gpio_e,
-                          gpio_f,
-                          gpio_g,
-                          gpio_h,
-                          gpio_i,
-                          gpio_j,
-                          gpio_k,
-                          i2c_3,
-                          sai_2,
-                          .. } = hw;
+    let board::Hardware {
+        rcc,
+        rng,
+        pwr,
+        flash,
+        fmc,
+        ltdc,
+        gpio_a,
+        gpio_b,
+        gpio_c,
+        gpio_d,
+        gpio_e,
+        gpio_f,
+        gpio_g,
+        gpio_h,
+        gpio_i,
+        gpio_j,
+        gpio_k,
+        i2c_3,
+        sai_2,
+        ..
+    } = hw;
 
     use embedded::interfaces::gpio::{self, Gpio};
     let mut gpio = Gpio::new(gpio_a,
@@ -93,21 +95,22 @@ fn main(hw: board::Hardware) -> ! {
 
     system_clock::init(rcc, pwr, flash);
     // enable all gpio ports
-    rcc.ahb1enr.update(|r| {
-        r.set_gpioaen(true);
-        r.set_gpioben(true);
-        r.set_gpiocen(true);
-        r.set_gpioden(true);
-        r.set_gpioeen(true);
-        r.set_gpiofen(true);
-        r.set_gpiogen(true);
-        r.set_gpiohen(true);
-        r.set_gpioien(true);
-        r.set_gpiojen(true);
-        r.set_gpioken(true);
+    rcc.ahb1enr
+        .update(|r| {
+            r.set_gpioaen(true);
+            r.set_gpioben(true);
+            r.set_gpiocen(true);
+            r.set_gpioden(true);
+            r.set_gpioeen(true);
+            r.set_gpiofen(true);
+            r.set_gpiogen(true);
+            r.set_gpiohen(true);
+            r.set_gpioien(true);
+            r.set_gpiojen(true);
+            r.set_gpioken(true);
 
 
-    });
+        });
 
     // button controller for reset button
     let button_pin = (gpio::Port::PortI, gpio::Pin::Pin11);
