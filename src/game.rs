@@ -46,6 +46,7 @@ impl<'a> Game<'a> {
         self.countdown = constants::GAME_TIME;
         self.clear_banner();
 
+        // which game mode?
         if touch.0 < constants::DISPLAY_SIZE.0 / 2 {
             self.hero_target_img = ::MEXICAN;
             self.super_target_img = ::SUPER_TRUMP;
@@ -55,6 +56,20 @@ impl<'a> Game<'a> {
             self.super_target_img = ::SUPER_TRUMP;
             self.evil_target_img = ::MEXICAN;
         }
+        self.draw_silent_button();
+    }
+
+    fn draw_silent_button(&mut self) {
+        let silent_btn = if self.silent_mode {
+            ::SILENT_BTN_NEG
+        } else {
+            ::SILENT_BTN
+        };
+        self.rend
+            .draw_dump(0,
+                       constants::DISPLAY_SIZE.1 - constants::SILENT_BTN_SIZE.1,
+                       constants::SILENT_BTN_SIZE,
+                       silent_btn);
     }
 
     fn clear_banner(&mut self) {
@@ -146,6 +161,11 @@ impl<'a> Game<'a> {
     }
 
     pub fn process_shooting(&mut self, sai_2: &'static Sai, touches: Vec<(u16, u16)>) {
+        if Self::silent_btn_touched(&touches) {
+            self.silent_mode = !self.silent_mode;
+            self.draw_silent_button();
+            ::stm32f7::system_clock::wait(250);
+        }
         if !Self::vol_limit_reached(sai_2) && !self.silent_mode {
             return;
         }
@@ -234,9 +254,19 @@ impl<'a> Game<'a> {
             data1.abs() as u16
         };
 
-        // mic_data reprents our "volume". Magic number 420 after testing.
-        let blaze_it = 2000;
-        mic_data > blaze_it
+        // mic_data reprents our "volume". Magic number after testing.
+        mic_data > 2000
+    }
+
+    fn silent_btn_touched(touches: &[(u16, u16)]) -> bool {
+        let silent_ul = (0, constants::DISPLAY_SIZE.1 - constants::SILENT_BTN_SIZE.1);
+        let silent_lr = (constants::SILENT_BTN_SIZE.0, constants::DISPLAY_SIZE.1);
+        for touch in touches {
+            if Self::point_is_within((touch.0, touch.1), silent_ul, silent_lr) {
+                return true;
+            }
+        }
+        false
     }
 
     fn get_rnd_lifetime(rnd: &mut random::MTRng32, min: usize, max: usize) -> usize {
@@ -280,6 +310,7 @@ impl<'a> Game<'a> {
     }
 
     fn pos_is_okay(pos: (u16, u16), existing_hero: &[Target], existing_evil: &[Target]) -> bool {
+        // check score, timer and silent button
         let score_ul = (0, 0);
         let score_lr = (SSDisplay::calculate_width(constants::ELEMENT_WIDTH_SMALL,
                                                    constants::ELEMENT_GAP_SMALL),
@@ -292,12 +323,18 @@ impl<'a> Game<'a> {
                         SSDisplay::calculate_width(constants::ELEMENT_WIDTH_SMALL,
                                                    constants::ELEMENT_GAP_SMALL),
                         SSDisplay::calculate_height(constants::ELEMENT_WIDTH_SMALL));
+        let silent_ul = (0, constants::DISPLAY_SIZE.1 - constants::SILENT_BTN_SIZE.1);
+        let silent_lr = (constants::SILENT_BTN_SIZE.0, constants::DISPLAY_SIZE.1);
+        let silent_offset_pos = pos.1 + constants::SILENT_BTN_SIZE.1;
         if Self::point_is_within(pos, score_ul, score_lr) ||
            Self::point_is_within((pos.0 + constants::TARGET_SIZE_50.0, pos.1),
                                  timer_ul,
-                                 timer_lr) {
+                                 timer_lr) ||
+           (Self::point_is_within((pos.0, silent_offset_pos), silent_ul, silent_lr) &&
+            silent_offset_pos < constants::DISPLAY_SIZE.1) {
             return false;
         }
+
         for hero in existing_hero {
             if Self::are_overlapping_targets(hero, pos) {
                 return false;
@@ -358,3 +395,4 @@ impl Target {
         indices
     }
 }
+

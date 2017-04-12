@@ -20,6 +20,7 @@ pub mod game;
 use stm32f7::{system_clock, sdram, lcd, i2c, audio, touch, board, embedded};
 use collections::vec::Vec;
 use seven_segment::SSDisplay;
+use embedded::interfaces::gpio::Gpio; // {self, Gpio} for use with button
 
 static TRUMP: &'static [u8] = include_bytes!("../pics/trump_cartoon.dump");
 static SUPER_TRUMP: &'static [u8] = include_bytes!("../pics/mexican_trump_head.dump");
@@ -27,6 +28,8 @@ static MEXICAN: &'static [u8] = include_bytes!("../pics/mexican_cartoon.dump");
 static BACKGROUND: &'static [u8] = include_bytes!("../pics/desert.dump");
 static START: &'static [u8] = include_bytes!("../pics/start.dump");
 static GAMEOVER: &'static [u8] = include_bytes!("../pics/gameover.dump");
+static SILENT_BTN: &'static [u8] = include_bytes!("../pics/trump_cartoon.dump");
+static SILENT_BTN_NEG: &'static [u8] = include_bytes!("../pics/mexican_cartoon.dump");
 
 #[no_mangle]
 pub unsafe extern "C" fn reset() -> ! {
@@ -80,7 +83,6 @@ fn main(hw: board::Hardware) -> ! {
         ..
     } = hw;
 
-    use embedded::interfaces::gpio::{self, Gpio};
     let mut gpio = Gpio::new(gpio_a,
                              gpio_b,
                              gpio_c,
@@ -113,9 +115,9 @@ fn main(hw: board::Hardware) -> ! {
         });
 
     // button controller for reset button
-    let button_pin = (gpio::Port::PortI, gpio::Pin::Pin11);
-    let button = gpio.to_input(button_pin, gpio::Resistor::NoPull)
-        .expect("button pin already in use");
+    // let button_pin = (gpio::Port::PortI, gpio::Pin::Pin11);
+    // let button = gpio.to_input(button_pin, gpio::Resistor::NoPull)
+    //     .expect("button pin already in use");
 
     // init sdram (needed for display buffer)
     sdram::init(rcc, fmc, &mut gpio);
@@ -202,7 +204,7 @@ fn main(hw: board::Hardware) -> ! {
             }
         } else if !touches.is_empty() && touches_to_start > 2 {
             touches_to_start -= 1;
-            stm32f7::system_clock::wait(50);
+            stm32f7::system_clock::wait(250);
         } else if !touches.is_empty() && touches_to_start == 2 {
             game.draw_start_banner();
             touches_to_start -= 1;
