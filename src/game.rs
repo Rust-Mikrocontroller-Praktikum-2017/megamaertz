@@ -53,7 +53,7 @@ impl<'a> Game<'a> {
             self.evil_target_img = ::TRUMP;
         } else {
             self.hero_target_img = ::TRUMP;
-            self.super_target_img = ::SUPER_TRUMP;
+            self.super_target_img = ::SUPER_MEXICAN;
             self.evil_target_img = ::MEXICAN;
         }
         self.draw_silent_button();

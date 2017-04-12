@@ -25,11 +25,14 @@ use embedded::interfaces::gpio::Gpio; // {self, Gpio} for use with button
 static TRUMP: &'static [u8] = include_bytes!("../pics/trump_cartoon.dump");
 static SUPER_TRUMP: &'static [u8] = include_bytes!("../pics/mexican_trump_head.dump");
 static MEXICAN: &'static [u8] = include_bytes!("../pics/mexican_cartoon.dump");
+static SUPER_MEXICAN: &'static [u8] = include_bytes!("../pics/super_mexican.dump");
 static BACKGROUND: &'static [u8] = include_bytes!("../pics/desert.dump");
 static START: &'static [u8] = include_bytes!("../pics/start.dump");
 static GAMEOVER: &'static [u8] = include_bytes!("../pics/gameover.dump");
-static SILENT_BTN: &'static [u8] = include_bytes!("../pics/trump_cartoon.dump");
-static SILENT_BTN_NEG: &'static [u8] = include_bytes!("../pics/mexican_cartoon.dump");
+static TACO_MODE: &'static [u8] = include_bytes!("../pics/taco.dump");
+static BURGER_MODE: &'static [u8] = include_bytes!("../pics/burger.dump");
+static SILENT_BTN_NEG: &'static [u8] = include_bytes!("../pics/micro_on.dump");
+static SILENT_BTN: &'static [u8] = include_bytes!("../pics/micro_off.dump");
 
 #[no_mangle]
 pub unsafe extern "C" fn reset() -> ! {
@@ -198,7 +201,6 @@ fn main(hw: board::Hardware) -> ! {
                 game.process_shooting(sai_2, touches);
                 game.purge_old_targets();
             } else {
-                // GAME OVER!
                 game.game_over();
                 game_running = false;
             }
