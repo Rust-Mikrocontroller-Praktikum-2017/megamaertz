@@ -61,9 +61,9 @@ impl<'a> Game<'a> {
 
     fn draw_silent_button(&mut self) {
         let silent_btn = if self.silent_mode {
-            ::SILENT_BTN_NEG
-        } else {
             ::SILENT_BTN
+        } else {
+            ::SILENT_BTN_NEG
         };
         self.rend
             .draw_dump(0,
@@ -255,7 +255,7 @@ impl<'a> Game<'a> {
         };
 
         // mic_data reprents our "volume". Magic number after testing.
-        mic_data > 2000
+        mic_data > constants::VOLUME_THRESHOLD
     }
 
     fn silent_btn_touched(touches: &[(u16, u16)]) -> bool {
