@@ -28,8 +28,22 @@ pub struct Game<'a> {
 impl<'a> Game<'a> {
     pub fn draw_start_banner(&mut self) {
         self.clear_banner();
+        // draw start banner
+        let start_y = constants::GAME_OVER_OFFSET_Y - 20;
         self.rend
-            .draw_dump(0, 90, constants::START_SIZE, ::START);
+            .draw_dump(0, start_y, constants::START_SIZE, ::START);
+        //draw game mode banner
+        let offset_x = constants::DISPLAY_SIZE.0 / 4 - constants::GAME_MODE_BTN_SIZE.0 / 2;
+        self.rend
+            .draw_dump(offset_x,
+                       start_y + constants::START_SIZE.1 + 20,
+                       constants::GAME_MODE_BTN_SIZE,
+                       ::BURGER_MODE);
+        self.rend
+            .draw_dump(offset_x + constants::DISPLAY_SIZE.0 / 2,
+                       start_y + constants::START_SIZE.1 + 20,
+                       constants::GAME_MODE_BTN_SIZE,
+                       ::TACO_MODE);
     }
 
     pub fn start(&mut self, touch: (u16, u16)) {
@@ -73,11 +87,10 @@ impl<'a> Game<'a> {
     }
 
     fn clear_banner(&mut self) {
-        let h = constants::GAME_OVER_SIZE.1 +
-                SSDisplay::calculate_height(constants::ELEMENT_WIDTH_BIG);
+        let h = constants::GAME_OVER_SIZE.1 + 20 + constants::GAME_MODE_BTN_SIZE.1;
         self.rend
             .clear(0,
-                   constants::GAME_OVER_OFFSET_Y,
+                   constants::GAME_OVER_OFFSET_Y - 20,
                    (constants::DISPLAY_SIZE.0, h));
     }
 
