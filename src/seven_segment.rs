@@ -21,6 +21,7 @@ impl Segment {
 
 pub struct SSDisplay {
     segs: [Segment; 7],
+    corners: [Segment; 4],
     pos: (u16, u16),
     elem_width: u16,
     gap: u16,
@@ -39,8 +40,13 @@ impl SSDisplay {
                    Segment::new((seg_size.1, seg_size.0 * 3), seg_size),
                    Segment::new((0, seg_size.0 * 2), flip(seg_size)),
                    Segment::new((0, seg_size.1), flip(seg_size)),
-                   Segment::new((seg_size.1, seg_size.0 + seg_size.1), seg_size),
-                   ],
+                   Segment::new((seg_size.1, seg_size.0 + seg_size.1), seg_size)],
+            corners: [// corner points for pretty printing
+                      Segment::new((0, 0), (seg_size.1, seg_size.1)),
+                      Segment::new((seg_size.1 + seg_size.0, 0), (seg_size.1, seg_size.1)),
+                      Segment::new((seg_size.1 + seg_size.0, (seg_size.1 + seg_size.0) * 2),
+                                   (seg_size.1, seg_size.1)),
+                      Segment::new((0, (seg_size.1 + seg_size.0) * 2), (seg_size.1, seg_size.1))],
             pos: pos,
             elem_width: elem_width,
             gap: gap,
@@ -71,6 +77,7 @@ impl SSDisplay {
         let mut offset = 0;
         self.render_segments(&h.0, color, offset, rend);
         self.render_segments(&h.1, 0x0000, offset, rend);
+        self.render_corners(color, offset, rend);
 
         offset += self.elem_width + self.gap;
         self.render_segments(&s.0, color, offset, rend);
@@ -93,6 +100,14 @@ impl SSDisplay {
         }
     }
 
+    fn render_corners(&self, color: u16, offset: u16, rend: &mut Renderer) {
+        for corner in &self.corners {
+            for p in &corner.pixel {
+                rend.render_pixel(p.0 + offset + self.pos.0, p.1 + self.pos.1, color);
+            }
+        }
+    }
+
     pub fn calculate_width(elem_width: u16, gap: u16) -> u16 {
         5 * elem_width + 4 * gap
     }
@@ -110,7 +125,7 @@ impl SSDisplay {
     }
 }
 
-fn flip(tuple: (u16, u16)) -> (u16, u16){
+fn flip(tuple: (u16, u16)) -> (u16, u16) {
     (tuple.1, tuple.0)
 }
 
