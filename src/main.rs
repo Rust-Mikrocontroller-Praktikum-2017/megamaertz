@@ -191,14 +191,6 @@ fn main(hw: board::Hardware) -> ! {
                 game.draw_missing_targets();
                 game.process_shooting(sai_2, touches);
                 game.purge_old_targets();
-
-                // reset game by click
-                let button_pressed = button.get();
-                if button_pressed {
-                    game.reset_game();
-                    stm32f7::system_clock::wait(3000);
-                    game.start((0, 0)); //TODO
-                }
             } else {
                 // GAME OVER!
                 game.game_over();
