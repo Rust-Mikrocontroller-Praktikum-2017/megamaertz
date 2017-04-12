@@ -179,7 +179,7 @@ impl<'a> Game<'a> {
             self.draw_silent_button();
             ::stm32f7::system_clock::wait(250);
         }
-        if !Self::vol_limit_reached(sai_2) && !self.silent_mode {
+        if !self.silent_mode && !Self::vol_limit_reached(sai_2) {
             return;
         }
         let mut hit_evil_targets = Target::check_for_hit(&mut self.evil_targets, &touches);
@@ -408,3 +408,4 @@ impl Target {
         indices
     }
 }
+
