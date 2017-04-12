@@ -1,4 +1,5 @@
 //pictures
+pub static FIESTA_PINATA: &'static [u8] = include_bytes!("../pics/name.dump");
 pub static TRUMP: &'static [u8] = include_bytes!("../pics/trump_cartoon.dump");
 pub static SUPER_TRUMP: &'static [u8] = include_bytes!("../pics/mexican_trump_head.dump");
 pub static MEXICAN: &'static [u8] = include_bytes!("../pics/mexican_cartoon.dump");
