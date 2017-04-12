@@ -177,8 +177,8 @@ fn main(hw: board::Hardware) -> ! {
     };
 
     game.draw_start_banner();
-    let mut start_drawn = true;
     let mut game_running = false;
+    let mut touches_to_start = 1;
     loop {
         let mut touches: Vec<(u16, u16)> = Vec::new();
         for touch in &touch::touches(&mut i2c_3).unwrap() {
@@ -203,13 +203,16 @@ fn main(hw: board::Hardware) -> ! {
                 game.game_over();
                 game_running = false;
             }
-        } else if start_drawn && !touches.is_empty() {
-            start_drawn = false;
+        } else if !touches.is_empty() && touches_to_start > 2 {
+            touches_to_start -= 1;
+            stm32f7::system_clock::wait(50);
+        } else if !touches.is_empty() && touches_to_start == 2 {
+            game.draw_start_banner();
+            touches_to_start -= 1;
+        } else if !touches.is_empty() && touches_to_start == 1 {
             game.start(touches.pop().unwrap());
             game_running = true;
-        } else if !touches.is_empty() {
-            game.draw_start_banner();
-            start_drawn = true;
+            touches_to_start = 3;
         }
     }
 
