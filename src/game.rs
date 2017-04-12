@@ -118,24 +118,21 @@ impl<'a> Game<'a> {
                 Self::get_rnd_pos(&mut self.rand, &self.hero_targets, &self.evil_targets);
             let evil_target = Target::new(pos.0,
                                           pos.1,
-                                          constants::TARGET_SIZE_50.0,
-                                          constants::TARGET_SIZE_50.1,
+                                          constants::TARGET_SIZE.0,
+                                          constants::TARGET_SIZE.1,
                                           constants::EVIL_POINTS,
                                           self.tick,
                                           lifetime);
             let super_evil_target = Target::new(pos.0,
                                                 pos.1,
-                                                constants::TARGET_SIZE_50.0,
-                                                constants::TARGET_SIZE_50.1,
+                                                constants::TARGET_SIZE.0,
+                                                constants::TARGET_SIZE.1,
                                                 constants::SUPER_EVIL_POINTS,
                                                 self.tick,
                                                 2000);
             if self.tick - self.last_super_target_render_time >= self.super_target_hiding_duration {
                 self.rend
-                    .draw_dump(pos.0,
-                               pos.1,
-                               constants::TARGET_SIZE_50,
-                               self.super_target_img);
+                    .draw_dump(pos.0, pos.1, constants::TARGET_SIZE, self.super_target_img);
                 self.last_super_target_render_time = self.tick;
                 self.evil_targets.push(super_evil_target);
                 self.super_target_hiding_duration =
@@ -144,10 +141,7 @@ impl<'a> Game<'a> {
                                            constants::SUPER_TARGET_HIDING_DURATION.1);
             } else {
                 self.rend
-                    .draw_dump(pos.0,
-                               pos.1,
-                               constants::TARGET_SIZE_50,
-                               self.evil_target_img);
+                    .draw_dump(pos.0, pos.1, constants::TARGET_SIZE, self.evil_target_img);
                 self.evil_targets.push(evil_target);
             }
         }
@@ -159,16 +153,13 @@ impl<'a> Game<'a> {
                 Self::get_rnd_pos(&mut self.rand, &self.hero_targets, &self.evil_targets);
             let hero_target = Target::new(pos.0,
                                           pos.1,
-                                          constants::TARGET_SIZE_50.0,
-                                          constants::TARGET_SIZE_50.1,
+                                          constants::TARGET_SIZE.0,
+                                          constants::TARGET_SIZE.1,
                                           constants::HERO_POINTS,
                                           self.tick,
                                           lifetime);
             self.rend
-                .draw_dump(pos.0,
-                           pos.1,
-                           constants::TARGET_SIZE_50,
-                           self.hero_target_img);
+                .draw_dump(pos.0, pos.1, constants::TARGET_SIZE, self.hero_target_img);
             self.hero_targets.push(hero_target);
         }
     }
@@ -292,12 +283,12 @@ impl<'a> Game<'a> {
                    existing_evil: &[Target])
                    -> (u16, u16) {
         let mut pos = renderer::Renderer::get_random_pos(rand,
-                                                         constants::TARGET_SIZE_50.0,
-                                                         constants::TARGET_SIZE_50.1);
+                                                         constants::TARGET_SIZE.0,
+                                                         constants::TARGET_SIZE.1);
         while !Self::pos_is_okay(pos, existing_hero, existing_evil) {
             pos = renderer::Renderer::get_random_pos(rand,
-                                                     constants::TARGET_SIZE_50.0,
-                                                     constants::TARGET_SIZE_50.1);
+                                                     constants::TARGET_SIZE.0,
+                                                     constants::TARGET_SIZE.1);
         }
         pos
     }
@@ -308,8 +299,8 @@ impl<'a> Game<'a> {
 
         let x1 = pos.0;
         let y1 = pos.1;
-        let x2 = pos.0 + constants::TARGET_SIZE_50.0;
-        let y2 = pos.1 + constants::TARGET_SIZE_50.1;
+        let x2 = pos.0 + constants::TARGET_SIZE.0;
+        let y2 = pos.1 + constants::TARGET_SIZE.1;
 
         Self::point_is_within((x1, y1), corner_ul, corner_lr) ||
         Self::point_is_within((x2, y2), corner_ul, corner_lr) ||
@@ -338,9 +329,9 @@ impl<'a> Game<'a> {
                         SSDisplay::calculate_height(constants::ELEMENT_WIDTH_SMALL));
         let silent_ul = (0, constants::DISPLAY_SIZE.1 - constants::SILENT_BTN_SIZE.1);
         let silent_lr = (constants::SILENT_BTN_SIZE.0, constants::DISPLAY_SIZE.1);
-        let silent_offset_pos = pos.1 + constants::SILENT_BTN_SIZE.1;
+        let silent_offset_pos = pos.1 + constants::TARGET_SIZE.1;
         if Self::point_is_within(pos, score_ul, score_lr) ||
-           Self::point_is_within((pos.0 + constants::TARGET_SIZE_50.0, pos.1),
+           Self::point_is_within((pos.0 + constants::TARGET_SIZE.0, pos.1),
                                  timer_ul,
                                  timer_lr) ||
            (Self::point_is_within((pos.0, silent_offset_pos), silent_ul, silent_lr) &&
