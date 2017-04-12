@@ -86,22 +86,21 @@ fn main(hw: board::Hardware) -> ! {
 
     system_clock::init(rcc, pwr, flash);
     // enable all gpio ports
-    rcc.ahb1enr
-        .update(|r| {
-            r.set_gpioaen(true);
-            r.set_gpioben(true);
-            r.set_gpiocen(true);
-            r.set_gpioden(true);
-            r.set_gpioeen(true);
-            r.set_gpiofen(true);
-            r.set_gpiogen(true);
-            r.set_gpiohen(true);
-            r.set_gpioien(true);
-            r.set_gpiojen(true);
-            r.set_gpioken(true);
+    rcc.ahb1enr.update(|r| {
+        r.set_gpioaen(true);
+        r.set_gpioben(true);
+        r.set_gpiocen(true);
+        r.set_gpioden(true);
+        r.set_gpioeen(true);
+        r.set_gpiofen(true);
+        r.set_gpiogen(true);
+        r.set_gpiohen(true);
+        r.set_gpioien(true);
+        r.set_gpiojen(true);
+        r.set_gpioken(true);
 
 
-        });
+    });
 
     // button controller for reset button
     // let button_pin = (gpio::Port::PortI, gpio::Pin::Pin11);

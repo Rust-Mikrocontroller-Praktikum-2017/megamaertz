@@ -40,4 +40,3 @@ pub const EVIL_POINTS: u16 = 50;
 pub const SUPER_EVIL_POINTS: u16 = 100;
 pub const SUPER_TARGET_HIDING_DURATION: (usize, usize) = (5000, 10000);
 pub const VOLUME_THRESHOLD: u16 = 2000;
-

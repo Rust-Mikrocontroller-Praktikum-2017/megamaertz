@@ -30,25 +30,21 @@ impl<'a> Game<'a> {
         self.clear_banner();
         // draw start banner
         let start_y = constants::GAME_OVER_OFFSET_Y - 20;
-        self.rend
-            .draw_dump(0, start_y, constants::START_SIZE, constants::START);
+        self.rend.draw_dump(0, start_y, constants::START_SIZE, constants::START);
         //draw game mode banner
         let offset_x = constants::DISPLAY_SIZE.0 / 4 - constants::GAME_MODE_BTN_SIZE.0 / 2;
-        self.rend
-            .draw_dump(offset_x,
-                       start_y + constants::START_SIZE.1 + 20,
-                       constants::GAME_MODE_BTN_SIZE,
-                       constants::BURGER_MODE);
-        self.rend
-            .draw_dump(offset_x + constants::DISPLAY_SIZE.0 / 2,
-                       start_y + constants::START_SIZE.1 + 20,
-                       constants::GAME_MODE_BTN_SIZE,
-                       constants::TACO_MODE);
+        self.rend.draw_dump(offset_x,
+                            start_y + constants::START_SIZE.1 + 20,
+                            constants::GAME_MODE_BTN_SIZE,
+                            constants::BURGER_MODE);
+        self.rend.draw_dump(offset_x + constants::DISPLAY_SIZE.0 / 2,
+                            start_y + constants::START_SIZE.1 + 20,
+                            constants::GAME_MODE_BTN_SIZE,
+                            constants::TACO_MODE);
     }
 
     pub fn start(&mut self, touch: (u16, u16)) {
-        self.ss_ctr_display
-            .render(constants::GAME_TIME, constants::BLACK, self.rend);
+        self.ss_ctr_display.render(constants::GAME_TIME, constants::BLACK, self.rend);
         self.ss_hs_display.render(0, constants::BLACK, self.rend);
         let tick = system_clock::ticks();
         self.last_ssd_render_time = tick;
@@ -79,19 +75,17 @@ impl<'a> Game<'a> {
         } else {
             constants::SILENT_BTN_NEG
         };
-        self.rend
-            .draw_dump(0,
-                       constants::DISPLAY_SIZE.1 - constants::SILENT_BTN_SIZE.1,
-                       constants::SILENT_BTN_SIZE,
-                       silent_btn);
+        self.rend.draw_dump(0,
+                            constants::DISPLAY_SIZE.1 - constants::SILENT_BTN_SIZE.1,
+                            constants::SILENT_BTN_SIZE,
+                            silent_btn);
     }
 
     fn clear_banner(&mut self) {
         let h = constants::GAME_OVER_SIZE.1 + 20 + constants::GAME_MODE_BTN_SIZE.1;
-        self.rend
-            .clear(0,
-                   constants::GAME_OVER_OFFSET_Y - 20,
-                   (constants::DISPLAY_SIZE.0, h));
+        self.rend.clear(0,
+                        constants::GAME_OVER_OFFSET_Y - 20,
+                        (constants::DISPLAY_SIZE.0, h));
     }
 
     pub fn update_countdown(&mut self) -> u16 {
@@ -103,8 +97,7 @@ impl<'a> Game<'a> {
             } else {
                 constants::BLACK
             };
-            self.ss_ctr_display
-                .render(self.countdown, color, self.rend);
+            self.ss_ctr_display.render(self.countdown, color, self.rend);
             self.last_ssd_render_time = self.tick;
         }
         self.countdown
@@ -131,8 +124,7 @@ impl<'a> Game<'a> {
                                                 self.tick,
                                                 2000);
             if self.tick - self.last_super_target_render_time >= self.super_target_hiding_duration {
-                self.rend
-                    .draw_dump(pos.0, pos.1, constants::TARGET_SIZE, self.super_target_img);
+                self.rend.draw_dump(pos.0, pos.1, constants::TARGET_SIZE, self.super_target_img);
                 self.last_super_target_render_time = self.tick;
                 self.evil_targets.push(super_evil_target);
                 self.super_target_hiding_duration =
@@ -140,8 +132,7 @@ impl<'a> Game<'a> {
                                            constants::SUPER_TARGET_HIDING_DURATION.0,
                                            constants::SUPER_TARGET_HIDING_DURATION.1);
             } else {
-                self.rend
-                    .draw_dump(pos.0, pos.1, constants::TARGET_SIZE, self.evil_target_img);
+                self.rend.draw_dump(pos.0, pos.1, constants::TARGET_SIZE, self.evil_target_img);
                 self.evil_targets.push(evil_target);
             }
         }
@@ -158,8 +149,7 @@ impl<'a> Game<'a> {
                                           constants::HERO_POINTS,
                                           self.tick,
                                           lifetime);
-            self.rend
-                .draw_dump(pos.0, pos.1, constants::TARGET_SIZE, self.hero_target_img);
+            self.rend.draw_dump(pos.0, pos.1, constants::TARGET_SIZE, self.hero_target_img);
             self.hero_targets.push(hero_target);
         }
     }
@@ -179,8 +169,7 @@ impl<'a> Game<'a> {
             let t = self.evil_targets.remove(*hit_index);
             self.rend.clear(t.x, t.y, (t.width, t.height));
             self.score += t.bounty;
-            self.ss_hs_display
-                .render(self.score, constants::GREEN, self.rend);
+            self.ss_hs_display.render(self.score, constants::GREEN, self.rend);
         }
         let mut hit_hero_targets = Target::check_for_hit(&mut self.hero_targets, &touches);
         hit_hero_targets.sort();
@@ -192,8 +181,7 @@ impl<'a> Game<'a> {
             } else {
                 t.bounty
             };
-            self.ss_hs_display
-                .render(self.score, constants::RED, self.rend);
+            self.ss_hs_display.render(self.score, constants::RED, self.rend);
         }
     }
 
@@ -229,11 +217,10 @@ impl<'a> Game<'a> {
     pub fn game_over(&mut self) {
         let score = self.score;
         self.reset_game();
-        self.rend
-            .draw_dump(0,
-                       constants::GAME_OVER_OFFSET_Y,
-                       constants::GAME_OVER_SIZE,
-                       constants::GAMEOVER);
+        self.rend.draw_dump(0,
+                            constants::GAME_OVER_OFFSET_Y,
+                            constants::GAME_OVER_SIZE,
+                            constants::GAMEOVER);
         let ss_end_display =
             SSDisplay::new(((constants::DISPLAY_SIZE.0 -
                              SSDisplay::calculate_width(constants::ELEMENT_WIDTH_BIG,
@@ -399,4 +386,3 @@ impl Target {
         indices
     }
 }
-
