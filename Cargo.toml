@@ -1,6 +1,6 @@
 [package]
 name = "megamaertz"
-version = "0.1.0"
+version = "1.0.1"
 authors = ["Jan Keim <jan.keim@protonmail.com>", "Nico Muerdter <nicomuerdter@gmail.com>", "Vanessa Steurer <vanessa_steurer@web.de"]
 license = "MIT/Apache-2.0"
 
